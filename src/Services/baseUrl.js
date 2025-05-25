@@ -1,1 +1,1 @@
-export const BASEURL = 'http://16.171.227.54:8081'
+export const BASEURL = 'http://localhost:8102'
