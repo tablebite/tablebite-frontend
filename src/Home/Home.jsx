@@ -218,8 +218,14 @@ function Home() {
     <div className="bg-white min-h-screen w-full font-sans text-gray-800">
       {/* Header */}
       <div className="flex flex-col px-4 py-6 border-b border-gray-200">
-        <h1 className="font-bold text-gray-900 text-xl leading-tight">Find delicious items from</h1>
-        <h2 className="font-bold text-2xl mt-1 text-green-600">{restaurantName}</h2>
+        <h1 className="font-bold text-gray-900 text-xl leading-tight"  style={{
+    userSelect: 'none',
+    cursor: 'default',
+  }}>Find delicious items from</h1>
+        <h2 className="font-bold text-2xl mt-1 text-green-600"  style={{
+    userSelect: 'none',
+    cursor: 'default',
+  }}>{restaurantName}</h2>
       </div>
       {/* Search Bar */}
       <div className="sticky top-0 z-10 p-4 border-b border-gray-200 bg-white " ref={searchInputRef}>
@@ -253,7 +259,10 @@ function Home() {
             <span className="absolute cursor-pointer top-0 left-0 right-0 bottom-0 bg-gray-200 rounded-full peer-checked:bg-red-600 transition"></span>
             <span className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full peer-checked:translate-x-5 transition"></span>
           </label>
-          <span className="text-sm text-gray-700 font-medium">Non-Veg</span>
+          <span className="text-sm text-gray-700 font-medium"  style={{
+    userSelect: 'none',
+    cursor: 'default',
+  }}>Non-Veg</span>
         </div>
         {/* Veg Toggle */}
         <div className="flex items-center gap-2">
@@ -267,16 +276,25 @@ function Home() {
             <span className="absolute cursor-pointer top-0 left-0 right-0 bottom-0 bg-gray-200 rounded-full peer-checked:bg-green-600 transition"></span>
             <span className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full peer-checked:translate-x-5 transition"></span>
           </label>
-          <span className="text-sm text-gray-700 font-medium">Veg</span>
+          <span className="text-sm text-gray-700 font-medium"  style={{
+    userSelect: 'none',
+    cursor: 'default',
+  }}>Veg</span>
         </div>
         {/* Categories Dropdown */}
         <div className="ml-auto relative">
           <button
             onClick={() => setShowDropdown(d => !d)}
             className="border border-gray-300 rounded-md px-3 py-1 text-sm font-medium flex items-center gap-1 focus:outline-none bg-white"
-          >
+           style={{
+    userSelect: 'none',
+    cursor: 'default',
+  }}>
             <span>{selectedCategory || 'Select Category'}</span>
-            <Icon icon="ic:round-arrow-drop-down" className="text-base text-gray-500" />
+            <Icon icon="ic:round-arrow-drop-down" className="text-base text-gray-500"  style={{
+    userSelect: 'none',
+    cursor: 'default',
+  }}/>
           </button>
           {showDropdown && (
             <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-md shadow-md z-10 overflow-hidden">
@@ -284,9 +302,9 @@ function Home() {
                 <div
                   key={cat}
                   onClick={() => handleCategoryChange(cat)}
-                  className={`px-3 py-2 text-sm cursor-pointer hover:bg-gray-100 ${
+                  className= {`px-3 py-2 text-sm cursor-pointer hover:bg-gray-100 ${
                     selectedCategory === cat ? 'font-semibold text-gray-800' : 'text-gray-700'
-                  }`}
+                  }` }
                 >
                   {cat}
                 </div>
@@ -300,9 +318,18 @@ function Home() {
         {loading ? (
           Array(5).fill().map((_, idx) => <SkeletonLoader key={idx} />)
         ) : filteredItems.length === 0 ? (
-          <div className="text-center py-10">
-            <p className="text-gray-600 text-lg font-medium">No results found</p>
-            <p className="text-gray-500 text-sm mt-1">Try adjusting your search or filters.</p>
+          <div className="text-center py-10"  style={{
+    userSelect: 'none',
+    cursor: 'default',
+  }}>
+            <p className="text-gray-600 text-lg font-medium"   style={{
+    userSelect: 'none',
+    cursor: 'default',
+  }}>No results found</p>
+            <p className="text-gray-500 text-sm mt-1"   style={{
+    userSelect: 'none',
+    cursor: 'default',
+  }}>Try adjusting your search or filters.</p>
           </div>
         ) : (
           filteredItems.map((item, index) => (
@@ -311,15 +338,27 @@ function Home() {
               className={`w-full flex flex-row items-start p-4 border-b border-gray-200 ${index === filteredItems.length - 1 ? 'pb-0' : ''}`}
             >
               <div className="flex-1 flex flex-col pr-4">
-                <h1 className="font-semibold text-lg text-gray-900">{item.name}</h1>
-                <h2 className="font-semibold text-md text-gray-800 mb-1">₹ {item.price}</h2>
+                <h1 className="font-semibold text-lg text-gray-900"   style={{
+    userSelect: 'none',
+    cursor: 'default',
+  }}>{item.name}</h1>
+                <h2 className="font-semibold text-md text-gray-800 mb-1"   style={{
+    userSelect: 'none',
+    cursor: 'default',
+  }}>₹ {item.price}</h2>
                 <div className="flex items-center text-sm mb-2">
                   <Icon icon="ic:round-star-rate" className="mr-1 text-yellow-500" />
-                  <span className="font-medium text-gray-700">
+                  <span className="font-medium text-gray-700"   style={{
+    userSelect: 'none',
+    cursor: 'default',
+  }}>
                     {item.rating ?? 4.2} ({item.ratingCount ?? 250})
                   </span>
                 </div>
-                <p className="text-sm text-gray-600 mb-2 leading-relaxed">
+                <p className="text-sm text-gray-600 mb-2 leading-relaxed"   style={{
+    userSelect: 'none',
+    cursor: 'default',
+  }}>
                   Serves 1 | {expandedItems.includes(item.id)
                     ? item.description
                     : `${item.description.slice(0, 70)}${item.description.length > 70 ? '...' : ''}`}
@@ -327,6 +366,10 @@ function Home() {
                     <span
                       onClick={() => toggleExpand(item.id)}
                       className="text-sm cursor-pointer font-medium text-blue-600 ml-1"
+                        style={{
+    userSelect: 'none',
+    cursor: 'default',
+  }}
                     >
                       {expandedItems.includes(item.id) ? 'less' : 'more'}
                     </span>
@@ -343,6 +386,10 @@ function Home() {
                 {item.cartCount === 0 ? (
                   <button
                     onClick={() => updateToCart(item.id)}
+                      style={{
+    userSelect: 'none',
+    cursor: 'default',
+  }}
                     className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-[35%] bg-green-500 text-white font-medium text-base rounded-full px-6 py-2 shadow-lg"
                   >
                     ADD
@@ -350,12 +397,14 @@ function Home() {
                 ) : (
                   <div
                     className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-[35%] border-2 rounded-full p-1 bg-white flex items-center gap-3 shadow-md"
-                    style={{ borderColor: themeColor }}
+                    style={{ borderColor: themeColor,  userSelect: 'none',
+    cursor: 'default', }}
                   >
                     <button
                       onClick={() => minusItems(item.id)}
                       className="px-3 py-1 font-bold rounded-full text-base focus:outline-none"
-                      style={{ color: themeColor }}
+                      style={{ color: themeColor,  userSelect: 'none',
+    cursor: 'default', }}
                     >
                       <Icon icon="ic:baseline-minus" />
                     </button>
