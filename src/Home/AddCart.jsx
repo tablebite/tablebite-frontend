@@ -32,7 +32,6 @@ function AddCart({ cartCount = 0, cartItems = [], onViewCart, themeColor }) {
           className="text-white text-sm font-semibold flex items-center"
           style={{
             userSelect: 'none',
-            cursor: 'default',
           }}
           onClick={handleViewCart}
         >

@@ -19,7 +19,7 @@ import { commonAPI } from "./commonApi";
 }
 
 export const getRestaurantColorTheme = async(restaurantId,headers) => {
-   return await commonAPI("GET",`/api/v1/restaurants/theme/${restaurantId}`,"",headers)
+   return await commonAPI("GET",`/api/v1/restaurants/theme/${restaurantId}`)
 }
 
  export const addMenus = async(body,headers) => {

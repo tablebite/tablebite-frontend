@@ -17,7 +17,7 @@ function useDebounce(value, delay) {
 
 function Home() {
   const [items, setItems] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState('Starter');
+  const [selectedCategory, setSelectedCategory] = useState('Starters');
   const [selectedType, setSelectedType] = useState('');
   const [loading, setLoading] = useState(true);
   const [cartItems, setCartItems] = useState([]);
@@ -37,7 +37,7 @@ function Home() {
   const dropdownRef = useRef(null);
 
   const [themeColor, setThemeColor] = useState(() => {
-    return localStorage.getItem('themeColor') || "#2ebf6c";
+    return localStorage.getItem('themeColor') || "#e4002b";
   });
 
   const debouncedSearch = useDebounce(searchTerm, 200);
@@ -64,7 +64,7 @@ function Home() {
         }
 
         if (isMounted && themeRes?.data) {
-          const finalColor = themeRes.data.backgroundColor || "#2ebf6c";
+          const finalColor = themeRes.data.backgroundColor || "#e4002b";
           setThemeColor(finalColor);
           localStorage.setItem('themeColor', finalColor);
         }
@@ -229,25 +229,29 @@ function Home() {
       <div className="w-32 h-32 ml-6 bg-gray-200 rounded-lg"></div>
     </div>
   );
+const [inputFocused, setInputFocused] = useState(false);
 
   return (
     <div className="bg-white min-h-screen w-full font-sans text-gray-800 relative">
       {/* Header */}
       <div className="flex flex-col px-4 py-6 border-b border-gray-200 select-none cursor-default">
         <h1 className="font-bold text-gray-900 text-xl leading-tight">Find delicious items from</h1>
-        <h2 className="font-bold text-2xl mt-1 text-green-600">{restaurantName}</h2>
+        <h2 className="font-bold text-2xl mt-1" style={{ color: themeColor }}>{restaurantName}</h2>
       </div>
 
       {/* Search Bar */}
       <div className="sticky top-0 z-10 p-4 border-b border-gray-200 bg-white">
         <div className="relative w-full" ref={searchInputRef}>
           <input
-            className="w-full bg-white text-gray-700 text-base placeholder-gray-500 px-5 py-3 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent shadow-sm transition duration-200 text-[16px]"
-            type="text"
-            value={searchTerm}
-            onChange={handleSearchChange}
-            placeholder="Search for dishes..."
-          />
+          className="w-full bg-white text-gray-700 text-base placeholder-gray-500 px-5 py-3 rounded-full border border-gray-300 focus:outline-none focus:border-transparent shadow-sm transition duration-200 text-[16px]"
+          type="text"
+          value={searchTerm}
+          onChange={handleSearchChange}
+          placeholder="Search for dishes..."
+          onFocus={() => setInputFocused(true)}
+          onBlur={() => setInputFocused(false)}
+          style={inputFocused ? { boxShadow: `0 0 0 2px ${themeColor}` } : {}}
+        />
           <button className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-green-600 transition duration-200" tabIndex={-1}>
             <Icon icon="ic:round-search" className="text-xl" />
           </button>
@@ -342,9 +346,9 @@ function Home() {
                 <h1 className="font-semibold text-lg text-gray-900 select-none cursor-default">{item.name}</h1>
                 <h2 className="font-semibold text-md text-gray-800 mb-1 select-none cursor-default">₹ {item.price}</h2>
                 <div className="flex items-center text-sm mb-2">
-                  <Icon icon="ic:round-star-rate" className="mr-1 text-yellow-500" />
+               <Icon icon="mdi:food-steak" />
                   <span className="font-medium text-gray-700 select-none cursor-default">
-                    {item.rating ?? 4.2} ({item.ratingCount ?? 250})
+                    {/* {item.rating ?? 4.2} ({item.ratingCount ?? 250}) */}
                   </span>
                 </div>
                 <p className="text-sm text-gray-600 mb-2 leading-relaxed select-none cursor-default">
@@ -372,7 +376,8 @@ function Home() {
                 {item.cartCount === 0 ? (
                   <button
                     onClick={(e) => { e.stopPropagation(); updateToCart(item.id); }}
-                    className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-[35%] bg-green-500 text-white font-medium text-base rounded-full px-6 py-2 shadow-lg"
+                    className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-[35%] text-white font-medium text-base rounded-full px-6 py-2 shadow-lg"
+                    style={{ backgroundColor: themeColor }}
                   >
                     ADD
                   </button>
@@ -478,6 +483,7 @@ function Home() {
               <button
                 onClick={() => updateToCart(selectedItem.id)}
                 className="bg-green-500 text-white font-medium rounded-full px-6 py-2 shadow-lg w-full"
+                 style={{ backgroundColor: themeColor }}
               >
                 ADD
               </button>
