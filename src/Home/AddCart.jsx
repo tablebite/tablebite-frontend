@@ -22,10 +22,13 @@ function AddCart({ cartCount = 0, cartItems = [], onViewCart, themeColor }) {
         className="fixed bottom-0 w-full z-50 flex items-center justify-between px-4 py-3"
         style={{ backgroundColor: themeColor }}
       >
-        <span className="text-white text-sm font-medium" style={{
-    userSelect: 'none',
-    cursor: 'default',
-  }}>
+        <span
+          className="text-white text-sm font-medium"
+          style={{
+            userSelect: 'none',
+            cursor: 'default',
+          }}
+        >
           {cartCount > 0 ? `${cartCount} items added` : 'Cart is empty'}
         </span>
         <button
@@ -60,45 +63,58 @@ function AddCart({ cartCount = 0, cartItems = [], onViewCart, themeColor }) {
             >
               Your Basket
             </h2>
+
+            {/* Scrollable container with max height */}
             {cartItems.length > 0 ? (
-              <ul className="space-y-3">
-                {cartItems.map((item, index) => (
-                  <li
-                    key={index}
-                    className="flex justify-between items-center border-b border-gray-200 pb-2"
-                  >
-                    <div className="flex flex-col">
-                      <span
-                        className="font-medium text-sm"
-                        style={{
-                          userSelect: 'none',
-                          cursor: 'default',
-                        }}
-                      >
-                        {item.name}
-                      </span>
-                      <span
-                        className="text-xs text-gray-500"
-                        style={{
-                          userSelect: 'none',
-                          cursor: 'default',
-                        }}
-                      >
-                        Qty: {item.cartCount}
-                      </span>
-                    </div>
-                    <span
-                      className="font-semibold text-sm"
-                      style={{
-                        userSelect: 'none',
-                        cursor: 'default',
-                      }}
+              <div
+                style={{
+                  maxHeight: '300px',  // Set max height as you like
+                  overflowY: 'auto',
+                }}
+              >
+                <ul className="space-y-3">
+                  {cartItems.map((item, index) => (
+                    <li
+                      key={index}
+                      className="flex justify-between items-center border-b border-gray-200 pb-2"
                     >
-                      ₹{(item.price * item.cartCount).toFixed(2)}
-                    </span>
-                  </li>
-                ))}
-              </ul>
+                      <div className="flex flex-col">
+                        <span
+                          className="font-medium text-sm"
+                          style={{
+                            userSelect: 'none',
+                            cursor: 'default',
+                          }}
+                        >
+                          {item.name}{' '}
+                          {item.variant?.quantityValue &&
+                          item.variant.quantityValue !== 'DEFAULT'
+                            ? `(${item.variant.quantityValue})`
+                            : ''}
+                        </span>
+                        <span
+                          className="text-xs text-gray-500"
+                          style={{
+                            userSelect: 'none',
+                            cursor: 'default',
+                          }}
+                        >
+                          Qty: {item.cartCount}
+                        </span>
+                      </div>
+                      <span
+                        className="font-semibold text-sm"
+                        style={{
+                          userSelect: 'none',
+                          cursor: 'default',
+                        }}
+                      >
+                        ₹{(item.price * item.cartCount).toFixed(2)}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             ) : (
               <p
                 className="text-gray-500 text-center py-4"
@@ -124,7 +140,7 @@ function AddCart({ cartCount = 0, cartItems = [], onViewCart, themeColor }) {
                 </span>
                 <button
                   className="px-4 py-2 rounded-md text-white"
-                  style={{ backgroundColor: themeColor ,  userSelect: 'none', cursor: 'default'}}
+                  style={{ backgroundColor: themeColor, userSelect: 'none', cursor: 'default' }}
                   onClick={() => alert('Proceeding to Checkout...')}
                 >
                   Checkout

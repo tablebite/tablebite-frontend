@@ -1,0 +1,15 @@
+.fade-top-gradient {
+  position: relative;
+}
+
+.fade-top-gradient::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 40px;
+  pointer-events: none;
+  background: linear-gradient(to bottom, white, transparent);
+  z-index: 10;
+}
