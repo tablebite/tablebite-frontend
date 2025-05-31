@@ -1,6 +1,6 @@
 import { Icon } from '@iconify/react/dist/iconify.js';
 import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
-import { getMenuListByRestaurantIdAndRestaurantName, getRestaurantColorTheme, getCategoriesByRestaurantId } from '../Services/allApi';
+import { getMenuListByRestaurantIdAndRestaurantName, getRestaurantColorTheme, getCategoriesByRestaurantId, getRestaurantByRestaurantId } from '../Services/allApi';
 import AddCart from './AddCart';
 import { useSearchParams } from 'react-router';
 import { useParams } from 'react-router-dom';
@@ -17,7 +17,7 @@ function useDebounce(value, delay) {
 
 function Home() {
   const [items, setItems] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState('Starters');
+  const [selectedCategory, setSelectedCategory] = useState();
   const [selectedType, setSelectedType] = useState('');
   const [loading, setLoading] = useState(true);
   const [cartItems, setCartItems] = useState([]);
@@ -26,14 +26,17 @@ function Home() {
   const [categories, setCategories] = useState([]);
   const [expandedItems, setExpandedItems] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [restaurant, setRestaurant] = useState(null);
+  const [notFound, setNotFound] = useState(false);
+
 
   // Modal states
   const [selectedItem, setSelectedItem] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedVariant, setSelectedVariant] = useState(null);
+  const [inputFocused, setInputFocused] = useState(false);
 
   const { restaurantId } = useParams();
-  const restaurantName = searchParams.get('restaurantName') || 'Italian Dorado';
   const searchInputRef = useRef(null);
   const dropdownRef = useRef(null);
 
@@ -59,8 +62,16 @@ function Home() {
         ]);
 
         if (isMounted && catRes?.data) {
+        const cats = catRes.data.map(cat => cat.name);
           setCategories(catRes.data.map(cat => cat.name));
+           // Set selectedCategory:
+        if (cats.length > 0) {
+          setSelectedCategory(cats[0]);
+        } else {
+          setSelectedCategory('');  // or "Select Category" if you want to display that literally
         }
+      }
+        
 
         if (isMounted && themeRes?.data) {
           const finalColor = themeRes.data.backgroundColor || "#e4002b";
@@ -250,16 +261,79 @@ function Home() {
     </div>
   );
 
-  const [inputFocused, setInputFocused] = useState(false);
+ useEffect(() => {
+  let isMounted = true;
+  async function fetchRestaurant() {
+    try {
+      const res = await getRestaurantByRestaurantId(restaurantId);
+      if (isMounted) {
+        if (res?.data) {
+          setRestaurant(res.data);
+          setNotFound(false);
+        } else {
+          setRestaurant(null);
+          setNotFound(true);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching restaurant:', error);
+      if (isMounted) {
+        setRestaurant(null);
+        setNotFound(true);
+      }
+    }
+  }
+
+  if (restaurantId) {
+    fetchRestaurant();
+  } else {
+    setRestaurant(null);
+    setNotFound(true);
+  }
+
+  return () => {
+    isMounted = false;
+  };
+}, [restaurantId]);
+
+const RestaurantHeaderSkeleton = () => (
+  <div className="flex flex-col px-4 py-6 select-none cursor-default">
+    <div className="h-6 bg-gray-200 rounded w-2/3 mb-2 animate-pulse"></div>
+    <div className="h-8 bg-gray-300 rounded w-1/3 animate-pulse"></div>
+  </div>
+);
+
+
+if (loading) {
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-start p-6">
+      <RestaurantHeaderSkeleton />
+      {/* You can also add skeleton loaders for the menu/items below if you want */}
+      {Array(5).fill().map((_, idx) => <SkeletonLoader key={idx} />)}
+    </div>
+  );
+}
+
+
+if (notFound) {
+  return (
+    <div className="min-h-screen flex items-center justify-center p-6">
+      <h1 className="text-2xl font-bold text-gray-700">
+        No restaurant found with ID: <span className="text-red-600">{restaurantId}</span>
+      </h1>
+    </div>
+  );
+}
 
   return (
     <div className="bg-white min-h-screen w-full font-sans text-gray-800 relative">
       {/* Header */}
       <div className="flex flex-col px-4 py-6 select-none cursor-default">
         <h1 className="font-bold text-gray-900 text-xl leading-tight">Find delicious items from</h1>
-        <h2 className="font-bold text-2xl mt-1" style={{ color: themeColor }}>{restaurantName}</h2>
+       <h2 className="font-bold text-2xl mt-1" style={{ color: themeColor }}>
+          {restaurant ? restaurant.name : 'Loading...'}
+        </h2>
       </div>
-
       {/* Search Bar */}
       <div className="sticky top-0 z-10 p-4 bg-white">
         <div className="relative w-full" ref={searchInputRef}>
@@ -268,7 +342,7 @@ function Home() {
             type="text"
             value={searchTerm}
             onChange={handleSearchChange}
-            placeholder="Search for dishes..."
+            placeholder="Search for dishes"
             onFocus={() => setInputFocused(true)}
             onBlur={() => setInputFocused(false)}
             style={inputFocused ? { boxShadow: `0 0 0 2px ${themeColor}` } : {}}
@@ -312,36 +386,50 @@ function Home() {
         </div>
 
         {/* Categories Dropdown */}
-        <div className="ml-auto relative">
-          <button
-            onClick={() => setShowDropdown(d => !d)}
-            className="border border-gray-300 rounded-md px-3 py-1 text-sm font-medium flex items-center gap-1 focus:outline-none bg-white"
-            style={{ userSelect: 'none', cursor: 'pointer' }}
-          >
-            <span style={{ userSelect: 'none' }}>{selectedCategory || 'Select Category'}</span>
-            <Icon
-              icon="ic:round-arrow-drop-down"
-              className="text-base text-gray-500"
-              style={{ userSelect: 'none' }}
-            />
+    <div className="ml-auto relative">
+      <button
+        onClick={() => setShowDropdown(d => !d)}
+        className="border border-gray-300 rounded-md px-3 py-1 text-sm font-medium flex items-center gap-1 focus:outline-none bg-white"
+        style={{ userSelect: 'none', cursor: 'pointer' }}
+      >
+        <span style={{ userSelect: 'none' }}>
+          {selectedCategory}
+        </span>
+        <Icon
+          icon="ic:round-arrow-drop-down"
+          className="text-base text-gray-500"
+          style={{ userSelect: 'none' }}
+        />
           </button>
+
           {showDropdown && (
             <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-md shadow-md z-10 overflow-hidden">
-              {categories.map(cat => (
+              {categories.length > 0 ? (
+                categories.map(cat => (
+                  <div
+                    key={cat}
+                    onClick={() => handleCategoryChange(cat)}
+                    className={`px-3 py-2 text-sm hover:bg-gray-100 ${
+                      selectedCategory === cat ? 'font-semibold text-gray-800' : 'text-gray-700'
+                    }`}
+                    style={{ userSelect: 'none', cursor: 'pointer' }}
+                  >
+                    {cat}
+                  </div>
+                ))
+              ) : (
                 <div
-                  key={cat}
-                  onClick={() => handleCategoryChange(cat)}
-                  className={`px-3 py-2 text-sm hover:bg-gray-100 ${
-                    selectedCategory === cat ? 'font-semibold text-gray-800' : 'text-gray-700'
-                  }`}
-                  style={{ userSelect: 'none', cursor: 'pointer' }}
+                  className="px-3 py-2 text-sm text-gray-500 select-none cursor-default"
+                  style={{ userSelect: 'none' }}
                 >
-                  {cat}
+                  No categories available
                 </div>
-              ))}
+              )}
             </div>
           )}
         </div>
+
+
       </div>
 
       {/* Item Listing */}
