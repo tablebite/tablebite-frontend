@@ -13,11 +13,11 @@ const SidebarSA = ({ isSidebarOpen, toggleSidebar }) => {
   }, [location]);
 
   const menuItems = [
-    { label: "Add menu", path: "/dashboard/super-admin/add-menu", icon: "ic:round-restaurant-menu" },
-    { label: "View menu", path: "/dashboard/super-admin/view-menus", icon: "ic:round-list-alt" },
-    { label: "Add restaurant", path: "/dashboard/super-admin/add-restaurants", icon: "ic:round-add-business" },
-    { label: "View restaurant", path: "/dashboard/super-admin/view-restaurants", icon: "ic:round-storefront" },
-    { label: "Settings", path: "/dashboard/super-admin/settings", icon: "ic:round-settings" },
+    { label: "Add menu", path: "/add-menu", icon: "ic:round-restaurant-menu" },
+    { label: "View menu", path: "/view-menus", icon: "ic:round-list-alt" },
+    { label: "Add restaurant", path: "/add-restaurants", icon: "ic:round-add-business" },
+    { label: "View restaurant", path: "/view-restaurants", icon: "ic:round-storefront" },
+    { label: "Settings", path: "/settings", icon: "ic:round-settings" },
   ];
   
   return (
