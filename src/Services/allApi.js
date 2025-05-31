@@ -12,31 +12,31 @@ import { organizationApi } from "./organizationApi";
 
 
  export const getMenuList = async(headers) => {
-   return await catelogAPI("GET",`/api/v1/menus`,"",null)
+   return await catelogAPI()
 }
  
  export const getRestaurantList = async(headers) => {
-   return await catelogAPI("GET",`/api/v1/restaurants`,"",headers)
+   return await catelogAPI()
 }
 
 export const getRestaurantColorTheme = async(restaurantId,headers) => {
-   return await catelogAPI("GET",`/api/v1/restaurants/theme/${restaurantId}`)
+   return await catelogAPI()
 }
 
  export const addMenus = async(body,headers) => {
-   return await catelogAPI("POST",`/api/v1/menus`,body,headers)
+   return await catelogAPI()
 }
 
 export const addRestaurants = async(body,headers) => {
-   return await catelogAPI("POST",`/api/v1/restaurants`,body,headers)
+   return await catelogAPI()
 }
 
 export const updateMenuItem = async(body,headers )=> {
-   return await catelogAPI("PATCH",`/api/v1/menus`,body,headers)
+   return await catelogAPI()
 }
 
 export const updateRestaurants = async(body,headers )=> {
-   return await catelogAPI("PATCH",`/api/v1/restaurants`,body,headers)
+   return await catelogAPI()
 }
 
 export const getRestaurantByRestaurantId = async(restaurantId)=> {
