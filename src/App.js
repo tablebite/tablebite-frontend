@@ -33,7 +33,7 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<Landing />} />
-      <Route path="/digital-menus/:restaurantId" element={<Home />} />
+      <Route path="/restaurant/:restaurantId" element={<Home />} />
       {/* Add other user/admin routes here if any */}
       <Route path="*" element={<h1>Page Not Found</h1>} />
     </Routes>
