@@ -1,8 +1,14 @@
 import { commonAPI } from "./commonApi";
 
- export const getMenuListByRestaurantIdAndRestaurantName = async(restaurantId,restaurantName,headers) => {
-    return await commonAPI("GET",`/api/v1/menus?restaurantId=${restaurantId}&restaurantName=${restaurantName}`,"",headers)
+ export const getMenuListByRestaurantIdAndRestaurantName = async(restaurantId) => {
+    return await commonAPI("GET",`/api/v1/items/restaurant/${restaurantId}`)
  }
+
+ 
+ export const getCategoriesByRestaurantId = async(restaurantId) => {
+    return await commonAPI("GET",`/api/v1/categories/restaurant/${restaurantId}`)
+ }
+
 
  export const getMenuList = async(headers) => {
    return await commonAPI("GET",`/api/v1/menus`,"",null)
@@ -13,7 +19,7 @@ import { commonAPI } from "./commonApi";
 }
 
 export const getRestaurantColorTheme = async(restaurantId,headers) => {
-   return await commonAPI("GET",`/api/v1/restaurants/theme/${restaurantId}`,"",headers)
+   return await commonAPI("GET",`/api/v1/restaurants/theme/${restaurantId}`)
 }
 
  export const addMenus = async(body,headers) => {
