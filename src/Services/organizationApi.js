@@ -1,10 +1,10 @@
 import axios from 'axios';
-import { BASEURL } from './baseUrl'; // Ensure correct import path
+import { ORGANIZATION_BASEURL } from './baseUrl'; // Ensure correct import path
 
-export const commonAPI = async (httpMethod, url, reqBody, reqHeader) => {
+export const organizationApi = async (httpMethod, url, reqBody, reqHeader) => {
     let reqConfig = {
         method: httpMethod,
-        url: `${BASEURL}${url}`, // Prepend BASEURL here
+        url: `${ORGANIZATION_BASEURL}${url}`, // Prepend BASEURL here
         data: reqBody,
         headers: reqHeader ? reqHeader : { "Content-Type": "application/json" },
     };
