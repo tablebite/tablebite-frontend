@@ -317,15 +317,15 @@ if (loading) {
 
 
 
-// if (notFound) {
-//   return (
-//     <div className="min-h-screen flex items-center justify-center p-6">
-//       <h1 className="text-2xl font-bold text-gray-700">
-//         No restaurant found with ID: <span className="text-red-600">{restaurantId}</span>
-//       </h1>
-//     </div>
-//   );
-// }
+if (notFound) {
+  return (
+    <div className="min-h-screen flex items-center justify-center p-6">
+      <h1 className="text-2xl font-bold text-gray-700">
+        No restaurant found with ID: <span className="text-red-600">{restaurantId}</span>
+      </h1>
+    </div>
+  );
+}
 
 
 
