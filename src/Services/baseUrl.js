@@ -1,2 +1,2 @@
-export const CATELOG_BASEURL = 'https://nexus.kindwave-62c65a9b.centralindia.azurecontainerapps.io/catalog'
-export const ORGANIZATION_BASEURL = 'https://nexus.kindwave-62c65a9b.centralindia.azurecontainerapps.io/organization'
+export const CATELOG_BASEURL = 'https://api.tablebite.in/catalog'
+export const ORGANIZATION_BASEURL = 'https://api.tablebite.in/organization'

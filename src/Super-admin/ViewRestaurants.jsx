@@ -26,19 +26,19 @@ function ViewRestaurants() {
         Authorization: "Basic " + btoa(username + ":" + password),
       };
 
-      try {
-        const response = await getRestaurantList(reqHeaders);
-        if (response?.status === 200) {
-          setRestaurants(response?.data || []);
-          setFilteredRestaurants(response?.data || []); // Initialize filteredRestaurants
-          setLoading(false);
-        } else {
-          setError("Failed to fetch restaurants");
-        }
-      } catch (err) {
-        setError("An error occurred while fetching restaurants");
-        setLoading(false);
-      }
+      // try {
+      //   const response = await getRestaurantList(reqHeaders);
+      //   if (response?.status === 200) {
+      //     setRestaurants(response?.data || []);
+      //     setFilteredRestaurants(response?.data || []); // Initialize filteredRestaurants
+      //     setLoading(false);
+      //   } else {
+      //     setError("Failed to fetch restaurants");
+      //   }
+      // } catch (err) {
+      //   setError("An error occurred while fetching restaurants");
+      //   setLoading(false);
+      // }
     };
 
     fetchRestaurants();
@@ -65,27 +65,27 @@ function ViewRestaurants() {
       Authorization: "Basic " + btoa(username + ":" + password),
     };
 
-    try {
-      // Wrap restaurantData in an array for the request body
-      const requestBody = [restaurantData];
+    // try {
+    //   // Wrap restaurantData in an array for the request body
+    //   const requestBody = [restaurantData];
 
-      const response = await updateRestaurants(requestBody, reqHeaders); // Call API to update the restaurant
-      if (response?.status === 204) {
-        // Update the restaurant list after successful update
-        const updatedRestaurants = restaurants.map((restaurant) =>
-          restaurant.restaurantId === editingRestaurant
-            ? { ...restaurant, ...restaurantData }
-            : restaurant
-        );
-        setRestaurants(updatedRestaurants);
-        setFilteredRestaurants(updatedRestaurants); // Ensure filtered list stays updated
-        setEditingRestaurant(null);
-      } else {
-        setError("Failed to update restaurant");
-      }
-    } catch (err) {
-      setError("An error occurred while updating restaurant");
-    }
+    //   const response = await updateRestaurants(requestBody, reqHeaders); // Call API to update the restaurant
+    //   if (response?.status === 204) {
+    //     // Update the restaurant list after successful update
+    //     const updatedRestaurants = restaurants.map((restaurant) =>
+    //       restaurant.restaurantId === editingRestaurant
+    //         ? { ...restaurant, ...restaurantData }
+    //         : restaurant
+    //     );
+    //     setRestaurants(updatedRestaurants);
+    //     setFilteredRestaurants(updatedRestaurants); // Ensure filtered list stays updated
+    //     setEditingRestaurant(null);
+    //   } else {
+    //     setError("Failed to update restaurant");
+    //   }
+    // } catch (err) {
+    //   setError("An error occurred while updating restaurant");
+    // }
   };
 
   // Filter restaurants based on the search query

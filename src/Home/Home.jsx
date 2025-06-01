@@ -57,7 +57,7 @@ function Home() {
       try {
         const [catRes, themeRes, menuRes] = await Promise.all([
           getCategoriesByRestaurantId(restaurantId),
-          getRestaurantColorTheme(restaurantId, getHeaders()),
+          null,
           getMenuListByRestaurantIdAndRestaurantName(restaurantId)
         ]);
 
@@ -78,7 +78,7 @@ function Home() {
           setThemeColor(finalColor);
           localStorage.setItem('themeColor', finalColor);
         }
-
+        console.log({menuRes});
         if (isMounted && menuRes?.data) {
           setItems(menuRes.data.map(item => ({
             id: item.id,
@@ -267,7 +267,7 @@ function Home() {
     try {
       const res = await getRestaurantByRestaurantId(restaurantId);
       if (isMounted) {
-        if (res?.data) {
+        if (res?.data) {    
           setRestaurant(res.data);
           setNotFound(false);
         } else {
@@ -301,8 +301,7 @@ const RestaurantHeaderSkeleton = () => (
     <div className="h-6 bg-gray-200 rounded w-2/3 mb-2 animate-pulse"></div>
     <div className="h-8 bg-gray-300 rounded w-1/3 animate-pulse"></div>
   </div>
-);
-
+); 
 
 if (loading) {
   return (
@@ -315,15 +314,20 @@ if (loading) {
 }
 
 
-if (notFound) {
-  return (
-    <div className="min-h-screen flex items-center justify-center p-6">
-      <h1 className="text-2xl font-bold text-gray-700">
-        No restaurant found with ID: <span className="text-red-600">{restaurantId}</span>
-      </h1>
-    </div>
-  );
-}
+
+
+
+// if (notFound) {
+//   return (
+//     <div className="min-h-screen flex items-center justify-center p-6">
+//       <h1 className="text-2xl font-bold text-gray-700">
+//         No restaurant found with ID: <span className="text-red-600">{restaurantId}</span>
+//       </h1>
+//     </div>
+//   );
+// }
+
+
 
   return (
     <div className="bg-white min-h-screen w-full font-sans text-gray-800 relative">
@@ -712,16 +716,16 @@ if (notFound) {
                           ? ''
                           : 'bg-white border-gray-300 text-gray-800'}
                       `}
-style={{
-  cursor: 'pointer',
-  borderColor: isSelected ? themeColor : '#d1d5db',
-  borderWidth: '1px',         // reduced from 2px or default
-  backgroundColor: isSelected ? '#fdecef' : 'white',
-  color: isSelected ? themeColor : '#374151',
-  minWidth: '80px',
-  textAlign: 'center',
-  fontSize: '0.85rem',
-}}
+                        style={{
+                          cursor: 'pointer',
+                          borderColor: isSelected ? themeColor : '#d1d5db',
+                          borderWidth: '1px',         // reduced from 2px or default
+                          backgroundColor: isSelected ? '#fdecef' : 'white',
+                          color: isSelected ? themeColor : '#374151',
+                          minWidth: '80px',
+                          textAlign: 'center',
+                          fontSize: '0.85rem',
+                        }}
 
 
                     >
