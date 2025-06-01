@@ -25,17 +25,17 @@ const AddRestaurant = () => {
       return;
     }
 
-    try {
-      const res = await addRestaurants([newRestaurant]); // Sending an array with one restaurant object
-      if (res?.status === 201) {
-        setMessage("Restaurant added successfully!");
-        setNewRestaurant({ restaurantName: "", description: "", location: "", colorTheme: "" });
-      } else {
-        setMessage("Failed to add the restaurant. Please try again.");
-      }
-    } catch (error) {
-      setMessage("An error occurred while adding the restaurant.");
-    }
+    // try {
+    //   const res = await addRestaurants([newRestaurant]); // Sending an array with one restaurant object
+    //   if (res?.status === 201) {
+    //     setMessage("Restaurant added successfully!");
+    //     setNewRestaurant({ restaurantName: "", description: "", location: "", colorTheme: "" });
+    //   } else {
+    //     setMessage("Failed to add the restaurant. Please try again.");
+    //   }
+    // } catch (error) {
+    //   setMessage("An error occurred while adding the restaurant.");
+    // }
   };
 
   return (

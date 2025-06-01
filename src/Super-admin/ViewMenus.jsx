@@ -27,34 +27,34 @@ function ViewMenus() {
         Authorization: "Basic " + btoa(username + ":" + password),
       };
 
-      try {
-        const response = await getMenuList(reqHeaders);
-        if (response?.status === 200) {
-          const data = response?.data || [];
-          setMenus(data);
+      // try {
+      //   const response = await getMenuList(reqHeaders);
+      //   if (response?.status === 200) {
+      //     const data = response?.data || [];
+      //     setMenus(data);
 
-          const uniqueRestaurants = [...new Set(data.map((menu) => menu.restaurantId))];
-          setRestaurants(uniqueRestaurants);
+      //     const uniqueRestaurants = [...new Set(data.map((menu) => menu.restaurantId))];
+      //     setRestaurants(uniqueRestaurants);
 
-          const uniqueCategories = [...new Set(data.map((menu) => menu.category))];
-          setCategories(uniqueCategories);
+      //     const uniqueCategories = [...new Set(data.map((menu) => menu.category))];
+      //     setCategories(uniqueCategories);
 
-          const uniqueFoodTypes = [...new Set(data.map((menu) => menu.foodType))];
-          setFoodTypes(uniqueFoodTypes);
+      //     const uniqueFoodTypes = [...new Set(data.map((menu) => menu.foodType))];
+      //     setFoodTypes(uniqueFoodTypes);
 
-          setFilters((prevFilters) => ({
-            ...prevFilters,
-            category: uniqueCategories[0] || "",
-            foodType: uniqueFoodTypes[0] || "",
-          }));
-        } else {
-          setError("Failed to fetch menus.");
-        }
-      } catch (err) {
-        setError("An error occurred while fetching menus.");
-      } finally {
-        setLoading(false);
-      }
+      //     setFilters((prevFilters) => ({
+      //       ...prevFilters,
+      //       category: uniqueCategories[0] || "",
+      //       foodType: uniqueFoodTypes[0] || "",
+      //     }));
+      //   } else {
+      //     setError("Failed to fetch menus.");
+      //   }
+      // } catch (err) {
+      //   setError("An error occurred while fetching menus.");
+      // } finally {
+      //   setLoading(false);
+      // }
     };
 
     fetchMenus();
@@ -130,24 +130,24 @@ function ViewMenus() {
   };
 
   const handleUpdateMenus = async () => {
-    try {
-      const response = await updateMenuItem(updatedMenus);
-      if (response?.status === 204) {
-        // Update the menu items in the state
-        setMenus((prevMenus) =>
-          prevMenus.map((menu) => {
-            const updatedMenu = updatedMenus.find((uMenu) => uMenu.id === menu.id);
-            return updatedMenu ? { ...menu, ...updatedMenu } : menu;
-          })
-        );
-        setEditingMenu(null);
-        setUpdatedMenus([]);
-      } else {
-        setError("Failed to update the menus.");
-      }
-    } catch (err) {
-      setError("An error occurred while updating the menus.");
-    }
+    // try {
+    //   const response = await updateMenuItem(updatedMenus);
+    //   if (response?.status === 204) {
+    //     // Update the menu items in the state
+    //     setMenus((prevMenus) =>
+    //       prevMenus.map((menu) => {
+    //         const updatedMenu = updatedMenus.find((uMenu) => uMenu.id === menu.id);
+    //         return updatedMenu ? { ...menu, ...updatedMenu } : menu;
+    //       })
+    //     );
+    //     setEditingMenu(null);
+    //     setUpdatedMenus([]);
+    //   } else {
+    //     setError("Failed to update the menus.");
+    //   }
+    // } catch (err) {
+    //   setError("An error occurred while updating the menus.");
+    // }
   };
 
   return (

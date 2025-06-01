@@ -17,22 +17,22 @@ function DashboardSA() {
   const [restaurants, setRestaurants] = useState([]);
   const [imageFile, setImageFile] = useState(null);
 
-  useEffect(() => {
-    const fetchRestaurants = async () => {
-      try {
-        const res = await getRestaurantList();
-        if (res?.status === 200) {
-          setRestaurants(res.data);
-        } else {
-          setMessage("Failed to fetch restaurants.");
-        }
-      } catch (error) {
-        setMessage("An error occurred while fetching the restaurants.");
-      }
-    };
+  // useEffect(() => {
+  //   const fetchRestaurants = async () => {
+  //     try {
+  //       const res = await getRestaurantList();
+  //       if (res?.status === 200) {
+  //         setRestaurants(res.data);
+  //       } else {
+  //         setMessage("Failed to fetch restaurants.");
+  //       }
+  //     } catch (error) {
+  //       setMessage("An error occurred while fetching the restaurants.");
+  //     }
+  //   };
 
-    fetchRestaurants();
-  }, []);
+  //   fetchRestaurants();
+  // }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -131,17 +131,17 @@ function DashboardSA() {
       Authorization: "Basic " + btoa(username + ":" + password),
     };
 
-    try {
-      const res = await addMenus(menuItems, reqHeaders);
-      if (res?.status === 201) {
-        setMessage("Menu items added successfully!");
-        setMenuItems([]);
-      } else {
-        setMessage("Failed to add menu items. Please try again.");
-      }
-    } catch (error) {
-      setMessage("An error occurred while adding the menu items.");
-    }
+    // try {
+    //   const res = await addMenus(menuItems, reqHeaders);
+    //   if (res?.status === 201) {
+    //     setMessage("Menu items added successfully!");
+    //     setMenuItems([]);
+    //   } else {
+    //     setMessage("Failed to add menu items. Please try again.");
+    //   }
+    // } catch (error) {
+    //   setMessage("An error occurred while adding the menu items.");
+    // }
   };
 
   return (

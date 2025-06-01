@@ -11,34 +11,6 @@ import { organizationApi } from "./organizationApi";
  }
 
 
- export const getMenuList = async(headers) => {
-   return await catelogAPI()
-}
- 
- export const getRestaurantList = async(headers) => {
-   return await catelogAPI()
-}
-
-export const getRestaurantColorTheme = async(restaurantId,headers) => {
-   return await catelogAPI()
-}
-
- export const addMenus = async(body,headers) => {
-   return await catelogAPI()
-}
-
-export const addRestaurants = async(body,headers) => {
-   return await catelogAPI()
-}
-
-export const updateMenuItem = async(body,headers )=> {
-   return await catelogAPI()
-}
-
-export const updateRestaurants = async(body,headers )=> {
-   return await catelogAPI()
-}
-
 export const getRestaurantByRestaurantId = async(restaurantId)=> {
    return await organizationApi("GET",`/api/v1/organizations/id/${restaurantId}`)
 }
