@@ -1,11 +1,23 @@
+// src/components/Home.js
+import React, {
+  useLayoutEffect,
+  useEffect,
+  useState,
+  useRef,
+  useMemo,
+  useCallback
+} from 'react';
 import { Icon } from '@iconify/react/dist/iconify.js';
-import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
-import { getMenuListByRestaurantIdAndRestaurantName, getRestaurantColorTheme, getCategoriesByRestaurantId, getRestaurantByRestaurantId } from '../Services/allApi';
+import { useParams, useLocation } from 'react-router-dom';
+import {
+  getMenuListByRestaurantIdAndRestaurantName,
+  getRestaurantColorTheme,
+  getCategoriesByRestaurantId,
+  getRestaurantByRestaurantId
+} from '../Services/allApi';
 import AddCart from './AddCart';
-import { useSearchParams } from 'react-router';
-import { useParams } from 'react-router-dom';
 
-// Debounce utility
+// Debounce hook (unchanged)
 function useDebounce(value, delay) {
   const [debounced, setDebounced] = useState(value);
   useEffect(() => {
@@ -16,19 +28,25 @@ function useDebounce(value, delay) {
 }
 
 function Home() {
+  // ───────────────────────────────────────────────────────────────
+  // 1) Router hooks
+  // ───────────────────────────────────────────────────────────────
+  const { restaurantId } = useParams();
+  const location = useLocation();
+
+  // ───────────────────────────────────────────────────────────────
+  // 2) State variables
+  // ───────────────────────────────────────────────────────────────
   const [items, setItems] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState();
   const [selectedType, setSelectedType] = useState('');
   const [loading, setLoading] = useState(true);
   const [cartItems, setCartItems] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [searchParams] = useSearchParams();
   const [categories, setCategories] = useState([]);
-  const [expandedItems, setExpandedItems] = useState([]);
-  const [showDropdown, setShowDropdown] = useState(false);
+  const [expandedItems, setExpandedItems] = useState([]);           // For item-description “more/less”
+  const [expandedCategories, setExpandedCategories] = useState([]); // For category accordion
   const [restaurant, setRestaurant] = useState(null);
   const [notFound, setNotFound] = useState(false);
-
 
   // Modal states
   const [selectedItem, setSelectedItem] = useState(null);
@@ -36,20 +54,55 @@ function Home() {
   const [selectedVariant, setSelectedVariant] = useState(null);
   const [inputFocused, setInputFocused] = useState(false);
 
-  const { restaurantId } = useParams();
-  const searchInputRef = useRef(null);
-  const dropdownRef = useRef(null);
+  // Floating MENU panel states
+  const [menuVisible, setMenuVisible] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState(null);
 
+  // Ref for the search input, so we can scroll/focus it
+  const searchInputRef = useRef(null);
+
+  // Theme color (from localStorage or default)
   const [themeColor, setThemeColor] = useState(() => {
     return localStorage.getItem('themeColor') || "#e4002b";
   });
 
+  // Debounced searchTerm, so we only filter after user stops typing
   const debouncedSearch = useDebounce(searchTerm, 200);
 
+  // Helper to build headers for API calls (if needed)
   const getHeaders = useCallback(() => ({
     'Authorization': 'Basic ' + btoa(`admin:admin123`)
   }), []);
 
+  // ───────────────────────────────────────────────────────────────
+  // A) Force scroll-to-top before paint on every route change
+  // ───────────────────────────────────────────────────────────────
+  useLayoutEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
+
+  // ───────────────────────────────────────────────────────────────
+  // B) When the MENU panel is open, prevent background scrolling
+  // ───────────────────────────────────────────────────────────────
+  useEffect(() => {
+    if (menuVisible) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [menuVisible]);
+
+  // ───────────────────────────────────────────────────────────────
+  // C) We need refs to each category header button so we can scroll to them
+  // ───────────────────────────────────────────────────────────────
+  const categoryRefs = useRef({});
+
+  // ───────────────────────────────────────────────────────────────
+  // 1) Fetch categories + menu items from APIs
+  // ───────────────────────────────────────────────────────────────
   useEffect(() => {
     let isMounted = true;
     async function fetchData() {
@@ -57,42 +110,39 @@ function Home() {
       try {
         const [catRes, themeRes, menuRes] = await Promise.all([
           getCategoriesByRestaurantId(restaurantId),
-          null,
+          null, // Replace with getRestaurantColorTheme(restaurantId) if you have that API
           getMenuListByRestaurantIdAndRestaurantName(restaurantId)
         ]);
 
+        // → Categories
         if (isMounted && catRes?.data) {
-        const cats = catRes.data.map(cat => cat.name);
-          setCategories(catRes.data.map(cat => cat.name));
-           // Set selectedCategory:
-        if (cats.length > 0) {
-          setSelectedCategory(cats[0]);
-        } else {
-          setSelectedCategory('');  // or "Select Category" if you want to display that literally
+          const cats = catRes.data.map(cat => cat.name);
+          setCategories(cats);
         }
-      }
-        
 
+        // → Theme color (if your API returned it)
         if (isMounted && themeRes?.data) {
           const finalColor = themeRes.data.backgroundColor || "#e4002b";
           setThemeColor(finalColor);
           localStorage.setItem('themeColor', finalColor);
         }
-        console.log({menuRes});
+
+        // → Menu items
         if (isMounted && menuRes?.data) {
           setItems(menuRes.data.map(item => ({
             id: item.id,
             name: item.name,
             description: item.description || "",
             price: item.variants?.[0]?.salePrice ?? item.variants?.[0]?.listPrice ?? 0,
-            imageUrl: item.imageUrl ?? 'https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png',
+            imageUrl: item.imageUrl 
+              ?? 'https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png',
             images: item.images || [],
             category: item.category?.name ?? 'Starter',
             cartCount: 0,
             type: item.type === 'NON_VEG' ? 'Non-Veg' : 'Veg',
             rating: 4.2,
             ratingCount: 250,
-            customisable: item.variants?.length > 1 || false,
+            customisable: (item.variants?.length > 1) || false,
             variants: item.variants || [],
           })));
         }
@@ -102,24 +152,62 @@ function Home() {
         if (isMounted) setLoading(false);
       }
     }
+
     if (restaurantId) fetchData();
-    return () => { isMounted = false };
+    return () => { isMounted = false; };
   }, [restaurantId, getHeaders]);
 
+  // ───────────────────────────────────────────────────────────────
+  // 2) As soon as “categories” is set, expand the first category by default
+  // ───────────────────────────────────────────────────────────────
   useEffect(() => {
-    function handleClickOutside(event) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setShowDropdown(false);
+    if (categories.length > 0) {
+      setExpandedCategories([categories[0]]);
+      setSelectedCategory(categories[0]);
+    }
+  }, [categories]);
+
+  // ───────────────────────────────────────────────────────────────
+  // 3) Fetch restaurant details (name / notFound)
+  // ───────────────────────────────────────────────────────────────
+  useEffect(() => {
+    let isMounted = true;
+    async function fetchRestaurant() {
+      try {
+        const res = await getRestaurantByRestaurantId(restaurantId);
+        if (isMounted) {
+          if (res?.data) {
+            setRestaurant(res.data);
+            setNotFound(false);
+          } else {
+            setRestaurant(null);
+            setNotFound(true);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching restaurant:', error);
+        if (isMounted) {
+          setRestaurant(null);
+          setNotFound(true);
+        }
       }
     }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+    if (restaurantId) {
+      fetchRestaurant();
+    } else {
+      setRestaurant(null);
+      setNotFound(true);
+    }
+    return () => { isMounted = false; };
+  }, [restaurantId]);
 
+  // ───────────────────────────────────────────────────────────────
+  // 4) Filter items by Veg/Non-Veg and search term (debounced)
+  // ───────────────────────────────────────────────────────────────
   const filteredItems = useMemo(() => {
     return items.filter(item => {
-      const matchesCategory = !selectedCategory || item.category.toLowerCase() === selectedCategory.toLowerCase();
-      const matchesType = !selectedType || item.type.toLowerCase() === selectedType.toLowerCase();
+      const matchesType = !selectedType 
+        || item.type.toLowerCase() === selectedType.toLowerCase();
       const searchLower = debouncedSearch.trim().toLowerCase();
       const matchesSearch = (
         !searchLower ||
@@ -127,11 +215,13 @@ function Home() {
         item.description.toLowerCase().includes(searchLower) ||
         item.category.toLowerCase().includes(searchLower)
       );
-      return matchesCategory && matchesType && matchesSearch;
+      return matchesType && matchesSearch;
     });
-  }, [items, selectedCategory, selectedType, debouncedSearch]);
+  }, [items, selectedType, debouncedSearch]);
 
-  // Unique key for cart item + variant
+  // ───────────────────────────────────────────────────────────────
+  // 5) Helpers for cart key + counts
+  // ───────────────────────────────────────────────────────────────
   const cartKey = (id, variant) => {
     if (!variant) return id;
     if (variant.quantityType === "UNIT") {
@@ -139,26 +229,26 @@ function Home() {
     }
     return `${id}-${variant.quantityType}-${variant.quantityValue}`;
   };
-
-  // Get count in cart for a specific item + variant
   const getCartCountForVariant = (id, variant) => {
     if (!variant) return 0;
     const key = cartKey(id, variant);
     const found = cartItems.find(ci => cartKey(ci.id, ci.variant) === key);
     return found ? found.cartCount : 0;
   };
-
-  // Get total count in cart for all variants of an item
   const getTotalCartCount = (id) => {
     return cartItems.reduce((total, ci) => ci.id === id ? total + ci.cartCount : total, 0);
   };
 
+  // ───────────────────────────────────────────────────────────────
+  // 6) Update cart: add/remove items
+  // ───────────────────────────────────────────────────────────────
   const updateCartCount = useCallback((id, variant, delta) => {
     setCartItems(prev => {
       const key = cartKey(id, variant);
       const foundIndex = prev.findIndex(ci => cartKey(ci.id, ci.variant) === key);
 
       if (foundIndex === -1 && delta > 0) {
+        // Add new
         const selected = items.find(i => i.id === id);
         if (selected) {
           return [...prev, { ...selected, variant, cartCount: delta }];
@@ -167,19 +257,23 @@ function Home() {
       }
 
       if (foundIndex !== -1) {
+        // Update or remove
         const updated = [...prev];
         const newCount = updated[foundIndex].cartCount + delta;
         if (newCount > 0) {
           updated[foundIndex] = { ...updated[foundIndex], cartCount: newCount };
           return updated;
         } else {
+          // Remove if count drops to 0
           updated.splice(foundIndex, 1);
           return updated;
         }
       }
+
       return prev;
     });
 
+    // If customization modal is open for this item, force re-render
     setSelectedItem(prev => {
       if (prev && prev.id === id) {
         return { ...prev };
@@ -188,9 +282,13 @@ function Home() {
     });
   }, [items]);
 
-  const updateToCart = useCallback((id, variant) => updateCartCount(id, variant, 1), [updateCartCount]);
+  const updateToCart = useCallback((id, variant) =>
+    updateCartCount(id, variant, 1),
+  [updateCartCount]);
 
-  // isSimple = true means allow direct update; false means open modal
+  // ───────────────────────────────────────────────────────────────
+  // 7) plus/minus handlers (open modal if customisable)
+  // ───────────────────────────────────────────────────────────────
   const plusItems = useCallback((id, variant, isSimple) => {
     if (!isSimple) {
       const item = items.find(i => i.id === id);
@@ -209,17 +307,17 @@ function Home() {
     updateCartCount(id, variant, -1);
   }, [updateCartCount, items]);
 
-  const handleCategoryChange = useCallback((category) => {
-    setSelectedCategory(category);
-    setShowDropdown(false);
-  }, []);
-
+  // ───────────────────────────────────────────────────────────────
+  // 8) Handlers for Veg / Non-Veg toggles & search input
+  // ───────────────────────────────────────────────────────────────
   const handleTypeChange = useCallback((type) => {
     setSelectedType(t => t === type ? '' : type);
   }, []);
-
   const handleSearchChange = (e) => setSearchTerm(e.target.value);
 
+  // ───────────────────────────────────────────────────────────────
+  // 9) Scroll the search bar into view when “VIEW CART” (search icon) is clicked
+  // ───────────────────────────────────────────────────────────────
   const scrollToSearchBar = useCallback(() => {
     if (searchInputRef.current) {
       searchInputRef.current.scrollIntoView({ behavior: 'smooth' });
@@ -231,6 +329,9 @@ function Home() {
     }
   }, [themeColor]);
 
+  // ───────────────────────────────────────────────────────────────
+  // 10) Toggle expand/collapse for item description (“more/less”)
+  // ───────────────────────────────────────────────────────────────
   const toggleExpand = useCallback((id) => {
     setExpandedItems(prev =>
       prev.includes(id)
@@ -239,17 +340,47 @@ function Home() {
     );
   }, []);
 
+  // ───────────────────────────────────────────────────────────────
+  // 11) Toggle expand/collapse for categories (“Swiggy-style”):
+  //     Only one category may be open at a time. If you click a different category,
+  //     close the old one and open the new one; clicking the currently open category collapses it.
+  // ───────────────────────────────────────────────────────────────
+  const toggleCategory = (category) => {
+    setExpandedCategories(prev => {
+      if (prev.includes(category)) {
+        // If already open, close it
+        return [];
+      } else {
+        // Otherwise, open exactly this one, closing any others
+        return [category];
+      }
+    });
+    setSelectedCategory(category);
+  };
+
+  // ───────────────────────────────────────────────────────────────
+  // 12) Open / close customization modal
+  // ───────────────────────────────────────────────────────────────
   const openModal = (item) => {
     setSelectedItem(item);
     setSelectedVariant(item.variants?.[0] || null);
     setModalVisible(true);
   };
-
   const closeModal = () => {
     setModalVisible(false);
     setTimeout(() => setSelectedItem(null), 300);
   };
 
+  // ───────────────────────────────────────────────────────────────
+  // ✱ MODIFIED: When the “MENU” button is clicked, just toggle visibility
+  // ───────────────────────────────────────────────────────────────
+  const handleMenuToggle = () => {
+    setMenuVisible(v => !v);
+  };
+
+  // ───────────────────────────────────────────────────────────────
+  // Skeleton loader (unchanged)
+  // ───────────────────────────────────────────────────────────────
   const SkeletonLoader = () => (
     <div className="w-full flex items-start p-4 border-b border-gray-200 animate-pulse">
       <div className="flex-1 space-y-3">
@@ -261,84 +392,60 @@ function Home() {
     </div>
   );
 
- useEffect(() => {
-  let isMounted = true;
-  async function fetchRestaurant() {
-    try {
-      const res = await getRestaurantByRestaurantId(restaurantId);
-      if (isMounted) {
-        if (res?.data) {    
-          setRestaurant(res.data);
-          setNotFound(false);
-        } else {
-          setRestaurant(null);
-          setNotFound(true);
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching restaurant:', error);
-      if (isMounted) {
-        setRestaurant(null);
-        setNotFound(true);
-      }
-    }
+  // ───────────────────────────────────────────────────────────────
+  // If loading, show skeletons
+  // ───────────────────────────────────────────────────────────────
+  if (loading) {
+    return (
+      // REMOVED “p-6” so skeletons render truly flush to top
+      <div className="min-h-screen flex flex-col items-center justify-start">
+        <div className="flex flex-col px-4 py-6 select-none cursor-default">
+          <div className="h-6 bg-gray-200 rounded w-2/3 mb-2 animate-pulse"></div>
+          <div className="h-8 bg-gray-300 rounded w-1/3 animate-pulse"></div>
+        </div>
+        {Array(5).fill().map((_, idx) => <SkeletonLoader key={idx} />)}
+      </div>
+    );
   }
 
-  if (restaurantId) {
-    fetchRestaurant();
-  } else {
-    setRestaurant(null);
-    setNotFound(true);
+  // ───────────────────────────────────────────────────────────────
+  // If restaurant not found, show a “not found” message
+  // ───────────────────────────────────────────────────────────────
+  if (notFound) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-6">
+        <h1 className="text-2xl font-bold text-gray-700">
+          No restaurant found with ID:&nbsp;
+          <span className="text-red-600">{restaurantId}</span>
+        </h1>
+      </div>
+    );
   }
 
-  return () => {
-    isMounted = false;
-  };
-}, [restaurantId]);
-
-const RestaurantHeaderSkeleton = () => (
-  <div className="flex flex-col px-4 py-6 select-none cursor-default">
-    <div className="h-6 bg-gray-200 rounded w-2/3 mb-2 animate-pulse"></div>
-    <div className="h-8 bg-gray-300 rounded w-1/3 animate-pulse"></div>
-  </div>
-); 
-
-if (loading) {
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-start p-6">
-      <RestaurantHeaderSkeleton />
-      {/* You can also add skeleton loaders for the menu/items below if you want */}
-      {Array(5).fill().map((_, idx) => <SkeletonLoader key={idx} />)}
-    </div>
-  );
-}
-
-
-
-
-
-if (notFound) {
-  return (
-    <div className="min-h-screen flex items-center justify-center p-6">
-      <h1 className="text-2xl font-bold text-gray-700">
-        No restaurant found with ID: <span className="text-red-600">{restaurantId}</span>
-      </h1>
-    </div>
-  );
-}
-
-
-
+  // ───────────────────────────────────────────────────────────────
+  // Main render
+  // ───────────────────────────────────────────────────────────────
   return (
     <div className="bg-white min-h-screen w-full font-sans text-gray-800 relative">
-      {/* Header */}
-      <div className="flex flex-col px-4 py-6 select-none cursor-default">
-        <h1 className="font-bold text-gray-900 text-xl leading-tight">Find delicious items from</h1>
-       <h2 className="font-bold text-2xl mt-1" style={{ color: themeColor }}>
+
+      {/* --------------------
+          Header (flush to top, no extra top-padding)
+      -------------------- */}
+      <div className="flex flex-col px-4 py-0 mt-6 select-none cursor-default">
+        <h1 className="text-gray-900 text-xl leading-tight m-0">
+          Find delicious items from
+        </h1>
+        <h2
+          className="font-bold text-2xl mt-1 m-0"
+          style={{ color: themeColor }}
+        >
           {restaurant ? restaurant.name : 'Loading...'}
         </h2>
       </div>
-      {/* Search Bar */}
+
+      {/* --------------------
+          Search Bar (sticky)
+      -------------------- */}
       <div className="sticky top-0 z-10 p-4 bg-white">
         <div className="relative w-full" ref={searchInputRef}>
           <input
@@ -351,14 +458,19 @@ if (notFound) {
             onBlur={() => setInputFocused(false)}
             style={inputFocused ? { boxShadow: `0 0 0 2px ${themeColor}` } : {}}
           />
-          <button className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-green-600 transition duration-200" tabIndex={-1}>
+          <button
+            className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-green-600 transition duration-200"
+            tabIndex={-1}
+          >
             <Icon icon="ic:round-search" className="text-xl" />
           </button>
         </div>
       </div>
 
-      {/* Filter Bar */}
-      <div className="p-3 border-b border-gray-200 flex items-center gap-4 relative fade-top-gradient" ref={dropdownRef}>
+      {/* --------------------
+          Filter Bar (Veg / Non-Veg)
+      -------------------- */}
+      <div className="p-3 border-b border-gray-200 flex items-center gap-4">
         {/* Non-Veg Toggle */}
         <div className="flex items-center gap-2 select-none cursor-default">
           <label className="relative inline-block w-11 h-6 cursor-pointer">
@@ -388,263 +500,267 @@ if (notFound) {
           </label>
           <span className="text-sm text-gray-700 font-medium">Veg</span>
         </div>
+      </div>
 
-        {/* Categories Dropdown */}
-    <div className="ml-auto relative">
-      <button
-        onClick={() => setShowDropdown(d => !d)}
-        className="border border-gray-300 rounded-md px-3 py-1 text-sm font-medium flex items-center gap-1 focus:outline-none bg-white"
-        style={{ userSelect: 'none', cursor: 'pointer' }}
-      >
-        <span style={{ userSelect: 'none' }}>
-          {selectedCategory}
-        </span>
-        <Icon
-          icon="ic:round-arrow-drop-down"
-          className="text-base text-gray-500"
-          style={{ userSelect: 'none' }}
-        />
-          </button>
+      {/* --------------------
+          Category Accordion (each category header + count)
+          We add `scrollMarginTop` so that when we call scrollIntoView,
+          the header sits just below the sticky search bar.
+      -------------------- */}
+      <div className="mt-4">
+        {categories.map(cat => {
+          // All filtered items that belong to this category
+          const itemsInCategory = filteredItems.filter(i => i.category === cat);
+          const countInCategory = itemsInCategory.length;
+          // If no items match the current search/type, skip rendering
+          if (countInCategory === 0) return null;
 
-          {showDropdown && (
-            <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-md shadow-md z-10 overflow-hidden">
-              {categories.length > 0 ? (
-                categories.map(cat => (
-                  <div
-                    key={cat}
-                    onClick={() => handleCategoryChange(cat)}
-                    className={`px-3 py-2 text-sm hover:bg-gray-100 ${
-                      selectedCategory === cat ? 'font-semibold text-gray-800' : 'text-gray-700'
-                    }`}
-                    style={{ userSelect: 'none', cursor: 'pointer' }}
-                  >
-                    {cat}
-                  </div>
-                ))
-              ) : (
-                <div
-                  className="px-3 py-2 text-sm text-gray-500 select-none cursor-default"
-                  style={{ userSelect: 'none' }}
-                >
-                  No categories available
+          const isExpanded = expandedCategories.includes(cat);
+
+          return (
+            <div key={cat} className="border-b border-gray-200">
+              {/* Attach a ref to each category header button */}
+              <button
+                ref={el => categoryRefs.current[cat] = el}
+                onClick={() => toggleCategory(cat)}
+                className="w-full flex justify-between items-center px-4 py-3 bg-white hover:bg-gray-50"
+                style={{
+                  cursor: 'pointer',
+                  userSelect: 'none',
+                  scrollMarginTop: '80px' // ensures it appears below the sticky search bar
+                }}
+              >
+                <span className={`font-semibold text-gray-900`}>
+                  {cat} ({countInCategory})
+                </span>
+                <Icon
+                  icon={isExpanded
+                    ? "ic:round-arrow-drop-up"
+                    : "ic:round-arrow-drop-down"
+                  }
+                  className="text-2xl text-gray-600"
+                />
+              </button>
+
+              {/* If expanded, render each item in this category */}
+              {isExpanded && (
+                <div>
+                  {itemsInCategory.map(item => {
+                    const totalCount = getTotalCartCount(item.id);
+                    const variantsLength = item.variants.length;
+                    const firstVariant = variantsLength > 0
+                      ? item.variants[0]
+                      : { quantityType: "UNIT", quantityValue: "DEFAULT" };
+
+                    return (
+                      <div
+                        key={item.id}
+                        className="w-full flex flex-row items-start p-4 border-b border-gray-100 cursor-pointer"
+                      >
+                        <div className="flex-1 flex flex-col pr-4">
+                          <h1 className="font-semibold text-lg text-gray-900 select-none cursor-default">
+                            {item.name}
+                          </h1>
+                          <h2 className="font-semibold text-md text-gray-800 mb-1 select-none cursor-default">
+                            ₹ {item.price}
+                          </h2>
+                          <div className="flex items-center text-sm mb-2">
+                            <Icon icon="mdi:food-steak" />
+                            <span className="font-medium text-gray-700 select-none cursor-default">
+                              {/* (rating placeholder) */}
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-600 mb-2 leading-relaxed select-none cursor-default">
+                            Serves 1 | {
+                              expandedItems.includes(item.id)
+                                ? item.description
+                                : `${item.description.slice(0, 70)}${item.description.length > 70 ? '...' : ''}`
+                            }
+                            {item.description.length > 70 && (
+                              <span
+                                onClick={(e) => { e.stopPropagation(); toggleExpand(item.id); }}
+                                className="cursor-pointer font-medium text-blue-600 ml-1"
+                              >
+                                {expandedItems.includes(item.id) ? 'less' : 'more'}
+                              </span>
+                            )}
+                          </p>
+                        </div>
+
+                        <div className="relative w-36 h-36">
+                          <img
+                            src={item.imageUrl}
+                            alt={item.name}
+                            className="w-full h-full object-cover rounded-2xl shadow-md"
+                            loading="lazy"
+                          />
+
+                          {variantsLength > 1 ? (
+                            totalCount === 0 ? (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  openModal(item);
+                                }}
+                                className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-[35%] font-medium text-base rounded-full shadow-lg"
+                                style={{
+                                  backgroundColor: '#FFFFFF',
+                                  color: themeColor,
+                                  boxShadow: `0 2px 4px rgba( ${parseInt(themeColor.slice(1,3),16)}, ${parseInt(themeColor.slice(3,5),16)}, ${parseInt(themeColor.slice(5,7),16)}, 0.2)`,
+                                  height: '40px',
+                                  width: '120px',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  cursor: 'pointer'
+                                }}
+                              >
+                                <b>ADD</b>
+                              </button>
+                            ) : (
+                              <div
+                                className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-[35%] rounded-full bg-white flex items-center shadow-md"
+                                style={{
+                                  borderColor: themeColor,
+                                  height: '40px',
+                                  width: '120px',
+                                  padding: '0 8px',
+                                  boxSizing: 'border-box',
+                                  gap: '8px',
+                                  cursor: 'pointer'
+                                }}
+                              >
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    openModal(item);
+                                  }}
+                                  className="flex items-center justify-center rounded-full focus:outline-none"
+                                  style={{
+                                    color: themeColor,
+                                    width: '32px',
+                                    height: '32px',
+                                    padding: 0
+                                  }}
+                                >
+                                  <Icon icon="ic:baseline-minus" />
+                                </button>
+
+                                <span
+                                  className="font-bold text-base"
+                                  style={{ color: themeColor, minWidth: '24px', textAlign: 'center' }}
+                                >
+                                  {totalCount}
+                                </span>
+
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    openModal(item);
+                                  }}
+                                  className="flex items-center justify-center rounded-full focus:outline-none"
+                                  style={{
+                                    color: themeColor,
+                                    width: '32px',
+                                    height: '32px',
+                                    padding: 0
+                                  }}
+                                >
+                                  <Icon icon="ic:baseline-plus" />
+                                </button>
+                              </div>
+                            )
+                          ) : (
+                            totalCount === 0 ? (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  updateToCart(item.id, firstVariant);
+                                }}
+                                className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-[35%] font-medium text-base rounded-full shadow-lg"
+                                style={{
+                                  backgroundColor: '#FFFFFF',
+                                  color: themeColor,
+                                  boxShadow: `0 2px 4px rgba( ${parseInt(themeColor.slice(1,3),16)}, ${parseInt(themeColor.slice(3,5),16)}, ${parseInt(themeColor.slice(5,7),16)}, 0.2)`,
+                                  height: '40px',
+                                  width: '120px',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  cursor: 'pointer'
+                                }}
+                              >
+                                <b>ADD</b>
+                              </button>
+                            ) : (
+                              <div
+                                className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-[35%] rounded-full bg-white flex items-center shadow-md"
+                                style={{
+                                  borderColor: themeColor,
+                                  height: '40px',
+                                  width: '120px',
+                                  padding: '0 8px',
+                                  boxSizing: 'border-box',
+                                  gap: '8px',
+                                }}
+                              >
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    minusItems(item.id, firstVariant, true);
+                                  }}
+                                  className="flex items-center justify-center rounded-full focus:outline-none"
+                                  style={{
+                                    color: themeColor,
+                                    width: '32px',
+                                    height: '32px',
+                                    padding: 0,
+                                    cursor: 'pointer'
+                                  }}
+                                >
+                                  <Icon icon="ic:baseline-minus" />
+                                </button>
+
+                                <span
+                                  className="font-bold text-base"
+                                  style={{ color: themeColor, minWidth: '24px', textAlign: 'center' }}
+                                >
+                                  {totalCount}
+                                </span>
+
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    plusItems(item.id, firstVariant, true);
+                                  }}
+                                  className="flex items-center justify-center rounded-full focus:outline-none"
+                                  style={{
+                                    color: themeColor,
+                                    width: '32px',
+                                    height: '32px',
+                                    padding: 0,
+                                    cursor: 'pointer'
+                                  }}
+                                >
+                                  <Icon icon="ic:baseline-plus" />
+                                </button>
+                              </div>
+                            )
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>
-          )}
-        </div>
-
-
+          );
+        })}
       </div>
 
-      {/* Item Listing */}
-      <div className="flex flex-col" style={{ paddingBottom: '90px' }}>
-        {loading ? (
-          Array(5).fill().map((_, idx) => <SkeletonLoader key={idx} />)
-        ) : filteredItems.length === 0 ? (
-          <div className="text-center py-10 select-none cursor-default">
-            <p className="text-gray-600 text-lg font-medium">No results found</p>
-            <p className="text-gray-500 text-sm mt-1">Try adjusting your search or filters.</p>
-          </div>
-        ) : (
-          filteredItems.map((item) => {
-            const totalCount = getTotalCartCount(item.id);
-            const variantsLength = item.variants.length;
-            const firstVariant = variantsLength > 0 ? item.variants[0] : { quantityType: "UNIT", quantityValue: "DEFAULT" };
-
-            return (
-              <div
-                key={item.id}
-                className="w-full flex flex-row items-start p-4 border-b border-gray-200 cursor-pointer"
-              >
-                <div className="flex-1 flex flex-col pr-4">
-                  <h1 className="font-semibold text-lg text-gray-900 select-none cursor-default">{item.name}</h1>
-                  <h2 className="font-semibold text-md text-gray-800 mb-1 select-none cursor-default">₹ {item.price}</h2>
-                  <div className="flex items-center text-sm mb-2">
-                    <Icon icon="mdi:food-steak" />
-                    <span className="font-medium text-gray-700 select-none cursor-default">{/* rating placeholder */}</span>
-                  </div>
-                  <p className="text-sm text-gray-600 mb-2 leading-relaxed select-none cursor-default">
-                    Serves 1 | {expandedItems.includes(item.id)
-                      ? item.description
-                      : `${item.description.slice(0, 70)}${item.description.length > 70 ? '...' : ''}`}
-                    {item.description.length > 70 && (
-                      <span
-                        onClick={(e) => { e.stopPropagation(); toggleExpand(item.id); }}
-                        className="cursor-pointer font-medium text-blue-600 ml-1"
-                      >
-                        {expandedItems.includes(item.id) ? 'less' : 'more'}
-                      </span>
-                    )}
-                  </p>
-                </div>
-                <div className="relative w-36 h-36">
-                  <img
-                    src={item.imageUrl}
-                    alt={item.name}
-                    className="w-full h-full object-cover rounded-2xl shadow-md"
-                    loading="lazy"
-                  />
-                  {variantsLength > 1 ? (
-                    totalCount === 0 ? (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          openModal(item);
-                        }}
-                        className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-[35%] font-medium text-base rounded-full shadow-lg"
-                        style={{
-                          backgroundColor: '#FFFFFF',
-                          color: '#e4002b',
-                          boxShadow: '0 2px 4px rgba(228, 0, 43, 0.2)',
-                          height: '40px',
-                          width: '120px',
-                          padding: '0',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          boxSizing: 'border-box',
-                        }}
-                      >
-                        <b>ADD</b>
-                      </button>
-                    ) : (
-                      <div
-                        className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-[35%] rounded-full bg-white flex items-center shadow-md"
-                        style={{
-                          borderColor: themeColor,
-                          height: '40px',
-                          width: '120px',
-                          padding: '0 8px',
-                          boxSizing: 'border-box',
-                          gap: '8px',
-                        }}
-                      >
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            openModal(item);  // OPEN MODAL on minus click for multi-variant
-                          }}
-                          className="flex items-center justify-center rounded-full focus:outline-none"
-                          style={{
-                            color: themeColor,
-                            width: '32px',
-                            height: '32px',
-                            padding: 0,
-                            cursor: 'pointer',
-                          }}
-                        >
-                          <Icon icon="ic:baseline-minus" />
-                        </button>
-
-                        <span
-                          className="font-bold text-base"
-                          style={{ color: themeColor, minWidth: '24px', textAlign: 'center' }}
-                        >
-                          {totalCount}
-                        </span>
-
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            openModal(item);  // OPEN MODAL on plus click for multi-variant
-                          }}
-                          className="flex items-center justify-center rounded-full focus:outline-none"
-                          style={{
-                            color: themeColor,
-                            width: '32px',
-                            height: '32px',
-                            padding: 0,
-                            cursor: 'pointer',
-                          }}
-                        >
-                          <Icon icon="ic:baseline-plus" />
-                        </button>
-                      </div>
-                    )
-                  ) : (
-                    totalCount === 0 ? (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          updateToCart(item.id, firstVariant);
-                        }}
-                        className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-[35%] font-medium text-base rounded-full shadow-lg"
-                        style={{
-                          backgroundColor: '#FFFFFF',
-                          color: '#e4002b',
-                          boxShadow: '0 2px 4px rgba(228, 0, 43, 0.2)',
-                          height: '40px',
-                          width: '120px',
-                          padding: '0',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          boxSizing: 'border-box',
-                        }}
-                      >
-                        <b>ADD</b>
-                      </button>
-                    ) : (
-                      <div
-                        className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-[35%] rounded-full bg-white flex items-center shadow-md"
-                        style={{
-                          borderColor: themeColor,
-                          height: '40px',
-                          width: '120px',
-                          padding: '0 8px',
-                          boxSizing: 'border-box',
-                          gap: '8px',
-                        }}
-                      >
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            minusItems(item.id, firstVariant, true);
-                          }}
-                          className="flex items-center justify-center rounded-full focus:outline-none"
-                          style={{
-                            color: themeColor,
-                            width: '32px',
-                            height: '32px',
-                            padding: 0,
-                          }}
-                        >
-                          <Icon icon="ic:baseline-minus" />
-                        </button>
-
-                        <span
-                          className="font-bold text-base"
-                          style={{ color: themeColor, minWidth: '24px', textAlign: 'center' }}
-                        >
-                          {totalCount}
-                        </span>
-
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            plusItems(item.id, firstVariant, true);
-                          }}
-                          className="flex items-center justify-center rounded-full focus:outline-none"
-                          style={{
-                            color: themeColor,
-                            width: '32px',
-                            height: '32px',
-                            padding: 0,
-                          }}
-                        >
-                          <Icon icon="ic:baseline-plus" />
-                        </button>
-                      </div>
-                    )
-                  )}
-                </div>
-              </div>
-            );
-          })
-        )}
-      </div>
-
-      {/* Modal */}
+      {/* --------------------
+          Modal: Customization (Variants / Add-to-Cart)
+      -------------------- */}
       {modalVisible && selectedItem && (
         <>
           <div
@@ -680,7 +796,7 @@ if (notFound) {
                     key={idx}
                     src={img}
                     alt={`${selectedItem.name} image ${idx + 1}`}
-                    className="h-40 w-auto rounded-lg object-cover flex-shrink-0"
+                    className="h-40 w-auto rounded-lg object-cover"
                     loading="lazy"
                   />
                 ))
@@ -695,7 +811,7 @@ if (notFound) {
             </div>
 
             {/* Item info */}
-            <h2 className="text-2xl font-bold mb-2 select-none">{selectedItem.name}</h2>
+            <h2 className="text-2xl font-bold mb-2 select-none m-0">{selectedItem.name}</h2>
             <p className="text-gray-700 mb-2 select-none">{selectedItem.description}</p>
 
             {/* Variant selection */}
@@ -703,7 +819,8 @@ if (notFound) {
               <h3 className="font-semibold mb-2 select-none">Choose portion</h3>
               <div className="flex gap-4 flex-wrap">
                 {selectedItem.variants.map((variant, idx) => {
-                  const isSelected = selectedVariant && JSON.stringify(selectedVariant) === JSON.stringify(variant);
+                  const isSelected = selectedVariant 
+                    && JSON.stringify(selectedVariant) === JSON.stringify(variant);
                   const priceToShow = variant.salePrice ?? variant.listPrice;
                   const cartCountForVar = getCartCountForVariant(selectedItem.id, variant);
                   return (
@@ -714,22 +831,22 @@ if (notFound) {
                       className={`px-4 py-2 rounded-full border font-medium select-none focus:outline-none
                         ${isSelected
                           ? ''
-                          : 'bg-white border-gray-300 text-gray-800'}
+                          : 'bg-white border-gray-300 text-gray-800'
+                        }
                       `}
-                        style={{
-                          cursor: 'pointer',
-                          borderColor: isSelected ? themeColor : '#d1d5db',
-                          borderWidth: '1px',         // reduced from 2px or default
-                          backgroundColor: isSelected ? '#fdecef' : 'white',
-                          color: isSelected ? themeColor : '#374151',
-                          minWidth: '80px',
-                          textAlign: 'center',
-                          fontSize: '0.85rem',
-                        }}
-
-
+                      style={{
+                        cursor: 'pointer',
+                        borderColor: isSelected ? themeColor : '#d1d5db',
+                        borderWidth: '1px',
+                        backgroundColor: isSelected ? '#fdecef' : 'white',
+                        color: isSelected ? themeColor : '#374151',
+                        minWidth: '80px',
+                        textAlign: 'center',
+                        fontSize: '0.85rem',
+                      }}
                     >
-                      {variant.quantityValue} ({priceToShow} ₹) {cartCountForVar > 0 && ` x${cartCountForVar}`}
+                      {variant.quantityValue} ({priceToShow} ₹) 
+                      {cartCountForVar > 0 && ` x${cartCountForVar}`}
                     </button>
                   );
                 })}
@@ -743,24 +860,23 @@ if (notFound) {
 
             {/* Add to cart controls inside modal */}
             {getCartCountForVariant(selectedItem.id, selectedVariant) === 0 ? (
-            <button
-            onClick={() => {
-              if (selectedVariant) updateToCart(selectedItem.id, selectedVariant);
-            }}
-            className="bg-green-500 text-white font-medium rounded-full px-6 py-2 shadow-lg w-full"
-            style={{
-              backgroundColor: '#FFFFFF',
-              color: '#e4002b',
-              boxShadow: '0 2px 4px rgba(228, 0, 43, 0.2)',
-
-            }}
-          >
-            ADD
-          </button>
+              <button
+                onClick={() => {
+                  if (selectedVariant) updateToCart(selectedItem.id, selectedVariant);
+                }}
+                className="bg-green-500 text-white font-medium rounded-full px-6 py-2 shadow-lg w-full"
+                style={{
+                  backgroundColor: '#FFFFFF',
+                  color: themeColor,
+                  boxShadow: `0 2px 4px rgba( ${parseInt(themeColor.slice(1,3),16)}, ${parseInt(themeColor.slice(3,5),16)}, ${parseInt(themeColor.slice(5,7),16)}, 0.2)`,
+                }}
+              >
+                ADD
+              </button>
             ) : (
               <div className="border-2 rounded-full p-1 bg-white flex items-center gap-3 shadow-md w-max mx-auto">
                 <button
-                  onClick={() => minusItems(selectedItem.id, selectedVariant, true /* direct update in modal */)}
+                  onClick={() => minusItems(selectedItem.id, selectedVariant, true)}
                   className="px-3 py-1 font-bold rounded-full text-base focus:outline-none"
                   style={{ color: themeColor, cursor: 'pointer' }}
                 >
@@ -770,7 +886,7 @@ if (notFound) {
                   {getCartCountForVariant(selectedItem.id, selectedVariant)}
                 </span>
                 <button
-                  onClick={() => plusItems(selectedItem.id, selectedVariant, true /* direct update in modal */)}
+                  onClick={() => plusItems(selectedItem.id, selectedVariant, true)}
                   className="px-3 py-1 font-bold rounded-full text-base focus:outline-none"
                   style={{ color: themeColor, cursor: 'pointer' }}
                 >
@@ -782,13 +898,112 @@ if (notFound) {
         </>
       )}
 
-      {/* AddCart component */}
+      {/* --------------------
+          AddCart (fixed bottom “View Basket” bar)
+      -------------------- */}
       <AddCart
         themeColor={themeColor}
         cartCount={cartItems.length}
         cartItems={cartItems}
         onSearchIconClick={scrollToSearchBar}
       />
+
+      {/* --------------------
+          Floating “MENU” Button (uses themeColor)
+      -------------------- */}
+      <div
+        onClick={handleMenuToggle}
+        className="fixed"
+        style={{
+          bottom: '60px',
+          right: '16px',
+          width: '56px',
+          height: '56px',
+          borderRadius: '28px',
+          backgroundColor: themeColor,
+          color: '#fff',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          fontWeight: 'bold',
+          fontSize: '14px',
+          userSelect: 'none',
+          cursor: 'pointer',
+          zIndex: 100
+        }}
+      >
+        MENU
+      </div>
+
+      {/* --------------------
+          Slide-Up Panel (with outside-click overlay)
+      -------------------- */}
+      {menuVisible && (
+        <>
+          {/* Overlay to catch outside clicks */}
+          <div
+            className="fixed inset-0 z-70"
+            onClick={() => setMenuVisible(false)}
+          />
+
+          <div
+            className="fixed left-0 right-0 bottom-0 z-80"
+            style={{
+              backgroundColor: '#1f1f1f',
+              maxHeight: '50%',
+              borderTopLeftRadius: '16px',
+              borderTopRightRadius: '16px',
+              overflowY: 'auto'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <ul>
+              {categories.map(cat => {
+                // Count how many items belong to this category
+                const countInCategory = items.filter(i => i.category === cat).length;
+                const isSelected = cat === selectedCategory;
+                return (
+                  <li key={cat} className="border-gray-700">
+                    <button
+                      onClick={() => {
+                        // 1) Expand and select this category
+                        setSelectedCategory(cat);
+                        setExpandedCategories([cat]);
+
+                        // 2) Close the slide-up panel
+                        setMenuVisible(false);
+
+                        // 3) After a short delay, scroll the category header into view
+                        setTimeout(() => {
+                          const headerEl = categoryRefs.current[cat];
+                          if (headerEl) {
+                            headerEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                          }
+                        }, 200);
+                      }}
+                      className={`w-full px-4 py-3 flex justify-between items-center ${
+                        isSelected
+                          ? 'text-white font-semibold'
+                          : 'text-gray-300'
+                      } hover:bg-gray-800`}
+                      style={{ userSelect: 'none', cursor: 'pointer' }}
+                    >
+                      <span>{cat}</span>
+                      <span>{countInCategory}</span>
+                    </button>
+                  </li>
+                );
+              })}
+
+              {categories.length === 0 && (
+                <li className="px-4 py-3 text-gray-500 select-none cursor-default">
+                  No categories available
+                </li>
+              )}
+            </ul>
+          </div>
+        </>
+      )}
     </div>
   );
 }
