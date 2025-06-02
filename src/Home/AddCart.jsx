@@ -1,11 +1,8 @@
 import React, { useState, useEffect } from 'react';
 
-function AddCart({ cartCount = 0, cartItems = [], onViewCart, themeColor }) {
+function AddCart({ cartCount = 0, cartItems = [], onViewCart, onRemoveItem, themeColor }) {
   const [isModalVisible, setIsModalVisible] = useState(false);
 
-  // ───────────────────────────────────────────────────────────────
-  // When the basket modal opens, disable body scroll; re-enable on close
-  // ───────────────────────────────────────────────────────────────
   useEffect(() => {
     if (isModalVisible) {
       document.body.style.overflow = 'hidden';
@@ -33,11 +30,19 @@ function AddCart({ cartCount = 0, cartItems = [], onViewCart, themeColor }) {
     0
   );
 
+  const handleRemoveItem = (index) => {
+    if (typeof onRemoveItem === 'function') {
+      onRemoveItem(index);
+    }
+  };
+
+  if (cartCount === 0) {
+    return null;
+  }
+
   return (
     <>
-      {/* --------------------
-          Fixed Bottom “View Basket” Bar
-      -------------------- */}
+      {/* Fixed Bottom “View Basket” Bar */}
       <div
         className="fixed bottom-0 w-full z-50 flex items-center justify-between px-4 py-3"
         style={{ backgroundColor: themeColor }}
@@ -49,7 +54,7 @@ function AddCart({ cartCount = 0, cartItems = [], onViewCart, themeColor }) {
             cursor: 'default',
           }}
         >
-          {cartCount > 0 ? `${cartCount} items added` : 'Cart is empty'}
+          {cartCount} {cartCount === 1 ? 'item' : 'items'} added
         </span>
         <button
           className="text-white text-sm font-semibold flex items-center"
@@ -71,12 +76,10 @@ function AddCart({ cartCount = 0, cartItems = [], onViewCart, themeColor }) {
         </button>
       </div>
 
-      {/* --------------------
-          Modal to Show Cart Items
-      -------------------- */}
+      {/* Modal to Show Cart Items */}
       {isModalVisible && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40"
+          className="fixed inset-0 z-60 flex items-center justify-center bg-black bg-opacity-40"
           onClick={handleCloseModal}
         >
           <div
@@ -93,7 +96,6 @@ function AddCart({ cartCount = 0, cartItems = [], onViewCart, themeColor }) {
               Your Basket
             </h2>
 
-            {/* Scrollable list of cart items */}
             {cartItems.length > 0 ? (
               <div
                 style={{
@@ -131,15 +133,25 @@ function AddCart({ cartCount = 0, cartItems = [], onViewCart, themeColor }) {
                           Qty: {item.cartCount}
                         </span>
                       </div>
-                      <span
-                        className="font-semibold text-sm"
-                        style={{
-                          userSelect: 'none',
-                          cursor: 'default',
-                        }}
-                      >
-                        ₹{(item.price * item.cartCount).toFixed(2)}
-                      </span>
+                      <div className="flex items-center gap-4">
+                        <span
+                          className="font-semibold text-sm"
+                          style={{
+                            userSelect: 'none',
+                            cursor: 'default',
+                          }}
+                        >
+                          ₹{(item.price * item.cartCount).toFixed(2)}
+                        </span>
+                        <button
+                          onClick={() => handleRemoveItem(index)}
+                          className="text-red-600 hover:text-red-800 focus:outline-none"
+                          aria-label={`Remove ${item.name} from cart`}
+                          style={{ cursor: 'pointer' }}
+                        >
+                          &#10005;
+                        </button>
+                      </div>
                     </li>
                   ))}
                 </ul>
@@ -184,6 +196,7 @@ function AddCart({ cartCount = 0, cartItems = [], onViewCart, themeColor }) {
             <button
               className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
               onClick={handleCloseModal}
+              aria-label="Close modal"
             >
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                 <path

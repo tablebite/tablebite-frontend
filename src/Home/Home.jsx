@@ -1,4 +1,3 @@
-// src/components/Home.js
 import React, {
   useLayoutEffect,
   useEffect,
@@ -11,13 +10,11 @@ import { Icon } from '@iconify/react/dist/iconify.js';
 import { useParams, useLocation } from 'react-router-dom';
 import {
   getMenuListByRestaurantIdAndRestaurantName,
-  getRestaurantColorTheme,
   getCategoriesByRestaurantId,
   getRestaurantByRestaurantId
 } from '../Services/allApi';
 import AddCart from './AddCart';
 
-// Debounce hook (unchanged)
 function useDebounce(value, delay) {
   const [debounced, setDebounced] = useState(value);
   useEffect(() => {
@@ -28,62 +25,46 @@ function useDebounce(value, delay) {
 }
 
 function Home() {
-  // ───────────────────────────────────────────────────────────────
-  // 1) Router hooks
-  // ───────────────────────────────────────────────────────────────
   const { restaurantId } = useParams();
   const location = useLocation();
 
-  // ───────────────────────────────────────────────────────────────
-  // 2) State variables
-  // ───────────────────────────────────────────────────────────────
   const [items, setItems] = useState([]);
   const [selectedType, setSelectedType] = useState('');
   const [loading, setLoading] = useState(true);
   const [cartItems, setCartItems] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [categories, setCategories] = useState([]);
-  const [expandedItems, setExpandedItems] = useState([]);           // For item-description “more/less”
-  const [expandedCategories, setExpandedCategories] = useState([]); // For category accordion
+  const [expandedItems, setExpandedItems] = useState([]);
+  const [expandedCategories, setExpandedCategories] = useState([]);
   const [restaurant, setRestaurant] = useState(null);
   const [notFound, setNotFound] = useState(false);
 
-  // Modal states
   const [selectedItem, setSelectedItem] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedVariant, setSelectedVariant] = useState(null);
   const [inputFocused, setInputFocused] = useState(false);
 
-  // Floating MENU panel states
   const [menuVisible, setMenuVisible] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
 
-  // Ref for the search input, so we can scroll/focus it
   const searchInputRef = useRef(null);
 
-  // Theme color (from localStorage or default)
   const [themeColor, setThemeColor] = useState(() => {
     return localStorage.getItem('themeColor') || "#e4002b";
   });
 
-  // Debounced searchTerm, so we only filter after user stops typing
+  const skipHighlightOnFocus = useRef(false);
+
   const debouncedSearch = useDebounce(searchTerm, 200);
 
-  // Helper to build headers for API calls (if needed)
   const getHeaders = useCallback(() => ({
     'Authorization': 'Basic ' + btoa(`admin:admin123`)
   }), []);
 
-  // ───────────────────────────────────────────────────────────────
-  // A) Force scroll-to-top before paint on every route change
-  // ───────────────────────────────────────────────────────────────
   useLayoutEffect(() => {
     window.scrollTo(0, 0);
   }, [location.pathname]);
 
-  // ───────────────────────────────────────────────────────────────
-  // B) When the MENU panel is open, prevent background scrolling
-  // ───────────────────────────────────────────────────────────────
   useEffect(() => {
     if (menuVisible) {
       document.body.style.overflow = 'hidden';
@@ -95,48 +76,34 @@ function Home() {
     };
   }, [menuVisible]);
 
-  // ───────────────────────────────────────────────────────────────
-  // C) We need refs to each category header button so we can scroll to them
-  // ───────────────────────────────────────────────────────────────
   const categoryRefs = useRef({});
 
-  // ───────────────────────────────────────────────────────────────
-  // 1) Fetch categories + menu items from APIs
-  // ───────────────────────────────────────────────────────────────
   useEffect(() => {
     let isMounted = true;
     async function fetchData() {
       setLoading(true);
       try {
-        const [catRes, themeRes, menuRes] = await Promise.all([
+        const [catRes, menuRes] = await Promise.all([
           getCategoriesByRestaurantId(restaurantId),
-          null, // Replace with getRestaurantColorTheme(restaurantId) if you have that API
           getMenuListByRestaurantIdAndRestaurantName(restaurantId)
         ]);
 
-        // → Categories
         if (isMounted && catRes?.data) {
           const cats = catRes.data.map(cat => cat.name);
           setCategories(cats);
         }
 
-        // → Theme color (if your API returned it)
-        if (isMounted && themeRes?.data) {
-          const finalColor = themeRes.data.backgroundColor || "#e4002b";
-          setThemeColor(finalColor);
-          localStorage.setItem('themeColor', finalColor);
-        }
-
-        // → Menu items
         if (isMounted && menuRes?.data) {
           setItems(menuRes.data.map(item => ({
             id: item.id,
             name: item.name,
             description: item.description || "",
             price: item.variants?.[0]?.salePrice ?? item.variants?.[0]?.listPrice ?? 0,
-            imageUrl: item.imageUrl 
-              ?? 'https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png',
+            imageUrl: (item.imageUrls && item.imageUrls.length > 0)
+              ? item.imageUrls[0]
+              : 'https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png',
             images: item.images || [],
+            imageUrls: item.imageUrls || [],
             category: item.category?.name ?? 'Starter',
             cartCount: 0,
             type: item.type === 'NON_VEG' ? 'Non-Veg' : 'Veg',
@@ -157,9 +124,6 @@ function Home() {
     return () => { isMounted = false; };
   }, [restaurantId, getHeaders]);
 
-  // ───────────────────────────────────────────────────────────────
-  // 2) As soon as “categories” is set, expand the first category by default
-  // ───────────────────────────────────────────────────────────────
   useEffect(() => {
     if (categories.length > 0) {
       setExpandedCategories([categories[0]]);
@@ -167,9 +131,6 @@ function Home() {
     }
   }, [categories]);
 
-  // ───────────────────────────────────────────────────────────────
-  // 3) Fetch restaurant details (name / notFound)
-  // ───────────────────────────────────────────────────────────────
   useEffect(() => {
     let isMounted = true;
     async function fetchRestaurant() {
@@ -201,12 +162,9 @@ function Home() {
     return () => { isMounted = false; };
   }, [restaurantId]);
 
-  // ───────────────────────────────────────────────────────────────
-  // 4) Filter items by Veg/Non-Veg and search term (debounced)
-  // ───────────────────────────────────────────────────────────────
   const filteredItems = useMemo(() => {
     return items.filter(item => {
-      const matchesType = !selectedType 
+      const matchesType = !selectedType
         || item.type.toLowerCase() === selectedType.toLowerCase();
       const searchLower = debouncedSearch.trim().toLowerCase();
       const matchesSearch = (
@@ -219,9 +177,6 @@ function Home() {
     });
   }, [items, selectedType, debouncedSearch]);
 
-  // ───────────────────────────────────────────────────────────────
-  // 5) Helpers for cart key + counts
-  // ───────────────────────────────────────────────────────────────
   const cartKey = (id, variant) => {
     if (!variant) return id;
     if (variant.quantityType === "UNIT") {
@@ -239,16 +194,12 @@ function Home() {
     return cartItems.reduce((total, ci) => ci.id === id ? total + ci.cartCount : total, 0);
   };
 
-  // ───────────────────────────────────────────────────────────────
-  // 6) Update cart: add/remove items
-  // ───────────────────────────────────────────────────────────────
   const updateCartCount = useCallback((id, variant, delta) => {
     setCartItems(prev => {
       const key = cartKey(id, variant);
       const foundIndex = prev.findIndex(ci => cartKey(ci.id, ci.variant) === key);
 
       if (foundIndex === -1 && delta > 0) {
-        // Add new
         const selected = items.find(i => i.id === id);
         if (selected) {
           return [...prev, { ...selected, variant, cartCount: delta }];
@@ -257,23 +208,19 @@ function Home() {
       }
 
       if (foundIndex !== -1) {
-        // Update or remove
         const updated = [...prev];
         const newCount = updated[foundIndex].cartCount + delta;
         if (newCount > 0) {
           updated[foundIndex] = { ...updated[foundIndex], cartCount: newCount };
           return updated;
         } else {
-          // Remove if count drops to 0
           updated.splice(foundIndex, 1);
           return updated;
         }
       }
-
       return prev;
     });
 
-    // If customization modal is open for this item, force re-render
     setSelectedItem(prev => {
       if (prev && prev.id === id) {
         return { ...prev };
@@ -284,11 +231,8 @@ function Home() {
 
   const updateToCart = useCallback((id, variant) =>
     updateCartCount(id, variant, 1),
-  [updateCartCount]);
+    [updateCartCount]);
 
-  // ───────────────────────────────────────────────────────────────
-  // 7) plus/minus handlers (open modal if customisable)
-  // ───────────────────────────────────────────────────────────────
   const plusItems = useCallback((id, variant, isSimple) => {
     if (!isSimple) {
       const item = items.find(i => i.id === id);
@@ -307,31 +251,53 @@ function Home() {
     updateCartCount(id, variant, -1);
   }, [updateCartCount, items]);
 
-  // ───────────────────────────────────────────────────────────────
-  // 8) Handlers for Veg / Non-Veg toggles & search input
-  // ───────────────────────────────────────────────────────────────
+  useEffect(() => {
+    if (debouncedSearch.trim() === '') {
+      // No search term — revert to default behavior: expand first category
+      if (categories.length > 0) {
+        setExpandedCategories([categories[0]]);
+        setSelectedCategory(categories[0]);
+      }
+      return;
+    }
+
+    // Find categories that have filtered items
+    const matchingCategories = categories.filter(cat =>
+      filteredItems.some(item => item.category === cat)
+    );
+
+    if (matchingCategories.length > 0) {
+      setExpandedCategories(matchingCategories);
+      setSelectedCategory(matchingCategories[0]);
+
+      // Scroll first matching category header into view
+      setTimeout(() => {
+        const el = categoryRefs.current[matchingCategories[0]];
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 100);
+    } else {
+      // No categories matched, collapse all
+      setExpandedCategories([]);
+      setSelectedCategory(null);
+    }
+  }, [debouncedSearch, filteredItems, categories]);
+
   const handleTypeChange = useCallback((type) => {
     setSelectedType(t => t === type ? '' : type);
   }, []);
   const handleSearchChange = (e) => setSearchTerm(e.target.value);
 
-  // ───────────────────────────────────────────────────────────────
-  // 9) Scroll the search bar into view when “VIEW CART” (search icon) is clicked
-  // ───────────────────────────────────────────────────────────────
-  const scrollToSearchBar = useCallback(() => {
-    if (searchInputRef.current) {
-      searchInputRef.current.scrollIntoView({ behavior: 'smooth' });
-      searchInputRef.current.focus();
-      searchInputRef.current.style.borderColor = themeColor;
-      setTimeout(() => {
-        if (searchInputRef.current) searchInputRef.current.style.borderColor = '';
-      }, 1000);
-    }
-  }, [themeColor]);
+const scrollToSearchBar = useCallback(() => {
+  if (searchInputRef.current) {
+    skipHighlightOnFocus.current = true;
+    searchInputRef.current.scrollIntoView({ behavior: 'smooth' });
+    searchInputRef.current.focus();
+  }
+}, []);
 
-  // ───────────────────────────────────────────────────────────────
-  // 10) Toggle expand/collapse for item description (“more/less”)
-  // ───────────────────────────────────────────────────────────────
+
   const toggleExpand = useCallback((id) => {
     setExpandedItems(prev =>
       prev.includes(id)
@@ -340,27 +306,25 @@ function Home() {
     );
   }, []);
 
-  // ───────────────────────────────────────────────────────────────
-  // 11) Toggle expand/collapse for categories (“Swiggy-style”):
-  //     Only one category may be open at a time. If you click a different category,
-  //     close the old one and open the new one; clicking the currently open category collapses it.
-  // ───────────────────────────────────────────────────────────────
+  const handleRemoveCartItem = useCallback((index) => {
+    setCartItems(prev => {
+      const updated = [...prev];
+      updated.splice(index, 1);
+      return updated;
+    });
+  }, []);
+
   const toggleCategory = (category) => {
     setExpandedCategories(prev => {
       if (prev.includes(category)) {
-        // If already open, close it
         return [];
       } else {
-        // Otherwise, open exactly this one, closing any others
         return [category];
       }
     });
     setSelectedCategory(category);
   };
 
-  // ───────────────────────────────────────────────────────────────
-  // 12) Open / close customization modal
-  // ───────────────────────────────────────────────────────────────
   const openModal = (item) => {
     setSelectedItem(item);
     setSelectedVariant(item.variants?.[0] || null);
@@ -371,16 +335,10 @@ function Home() {
     setTimeout(() => setSelectedItem(null), 300);
   };
 
-  // ───────────────────────────────────────────────────────────────
-  // ✱ MODIFIED: When the “MENU” button is clicked, just toggle visibility
-  // ───────────────────────────────────────────────────────────────
   const handleMenuToggle = () => {
     setMenuVisible(v => !v);
   };
 
-  // ───────────────────────────────────────────────────────────────
-  // Skeleton loader (unchanged)
-  // ───────────────────────────────────────────────────────────────
   const SkeletonLoader = () => (
     <div className="w-full flex items-start p-4 border-b border-gray-200 animate-pulse">
       <div className="flex-1 space-y-3">
@@ -392,12 +350,8 @@ function Home() {
     </div>
   );
 
-  // ───────────────────────────────────────────────────────────────
-  // If loading, show skeletons
-  // ───────────────────────────────────────────────────────────────
   if (loading) {
     return (
-      // REMOVED “p-6” so skeletons render truly flush to top
       <div className="min-h-screen flex flex-col items-center justify-start">
         <div className="flex flex-col px-4 py-6 select-none cursor-default">
           <div className="h-6 bg-gray-200 rounded w-2/3 mb-2 animate-pulse"></div>
@@ -408,9 +362,6 @@ function Home() {
     );
   }
 
-  // ───────────────────────────────────────────────────────────────
-  // If restaurant not found, show a “not found” message
-  // ───────────────────────────────────────────────────────────────
   if (notFound) {
     return (
       <div className="min-h-screen flex items-center justify-center p-6">
@@ -422,15 +373,10 @@ function Home() {
     );
   }
 
-  // ───────────────────────────────────────────────────────────────
-  // Main render
-  // ───────────────────────────────────────────────────────────────
   return (
-    <div className="bg-white min-h-screen w-full font-sans text-gray-800 relative">
+    <div className="bg-white min-h-screen w-full font-sans text-gray-800 relative flex flex-col">
 
-      {/* --------------------
-          Header (flush to top, no extra top-padding)
-      -------------------- */}
+      {/* Header */}
       <div className="flex flex-col px-4 py-0 mt-6 select-none cursor-default">
         <h1 className="text-gray-900 text-xl leading-tight m-0">
           Find delicious items from
@@ -443,20 +389,18 @@ function Home() {
         </h2>
       </div>
 
-      {/* --------------------
-          Search Bar (sticky)
-      -------------------- */}
+      {/* Search Bar */}
       <div className="sticky top-0 z-10 p-4 bg-white">
         <div className="relative w-full" ref={searchInputRef}>
           <input
-            className="w-full bg-white text-gray-700 text-base placeholder-gray-500 px-5 py-3 rounded-full border border-gray-300 focus:outline-none focus:border-transparent shadow-sm transition duration-200 text-[16px]"
+            className="w-full bg-white text-gray-700 text-base placeholder-gray-500 px-5 py-3 rounded-full border border-gray-300 focus:outline-none shadow-sm transition duration-200 text-[16px]"
             type="text"
             value={searchTerm}
             onChange={handleSearchChange}
             placeholder="Search for dishes"
             onFocus={() => setInputFocused(true)}
             onBlur={() => setInputFocused(false)}
-            style={inputFocused ? { boxShadow: `0 0 0 2px ${themeColor}` } : {}}
+            style={inputFocused ? { boxShadow: `0 0 0 2px ${themeColor}`, borderColor: themeColor } : {}}
           />
           <button
             className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-green-600 transition duration-200"
@@ -467,11 +411,8 @@ function Home() {
         </div>
       </div>
 
-      {/* --------------------
-          Filter Bar (Veg / Non-Veg)
-      -------------------- */}
+      {/* Filter Bar */}
       <div className="p-3 border-b border-gray-200 flex items-center gap-4">
-        {/* Non-Veg Toggle */}
         <div className="flex items-center gap-2 select-none cursor-default">
           <label className="relative inline-block w-11 h-6 cursor-pointer">
             <input
@@ -486,7 +427,6 @@ function Home() {
           <span className="text-sm text-gray-700 font-medium">Non-Veg</span>
         </div>
 
-        {/* Veg Toggle */}
         <div className="flex items-center gap-2 select-none cursor-default">
           <label className="relative inline-block w-11 h-6 cursor-pointer">
             <input
@@ -502,35 +442,26 @@ function Home() {
         </div>
       </div>
 
-      {/* --------------------
-          Category Accordion (each category header + count)
-          We add `scrollMarginTop` so that when we call scrollIntoView,
-          the header sits just below the sticky search bar.
-      -------------------- */}
+      {/* Category Accordion */}
       <div className="mt-4">
         {categories.map(cat => {
-          // All filtered items that belong to this category
           const itemsInCategory = filteredItems.filter(i => i.category === cat);
           const countInCategory = itemsInCategory.length;
-          // If no items match the current search/type, skip rendering
-          if (countInCategory === 0) return null;
-
           const isExpanded = expandedCategories.includes(cat);
 
           return (
             <div key={cat} className="border-b border-gray-200">
-              {/* Attach a ref to each category header button */}
               <button
-                ref={el => categoryRefs.current[cat] = el}
+                ref={el => (categoryRefs.current[cat] = el)}
                 onClick={() => toggleCategory(cat)}
                 className="w-full flex justify-between items-center px-4 py-3 bg-white hover:bg-gray-50"
                 style={{
                   cursor: 'pointer',
                   userSelect: 'none',
-                  scrollMarginTop: '80px' // ensures it appears below the sticky search bar
+                  scrollMarginTop: '80px'
                 }}
               >
-                <span className={`font-semibold text-gray-900`}>
+                <span className="font-semibold text-gray-900">
                   {cat} ({countInCategory})
                 </span>
                 <Icon
@@ -542,20 +473,23 @@ function Home() {
                 />
               </button>
 
-              {/* If expanded, render each item in this category */}
               {isExpanded && (
                 <div>
-                  {itemsInCategory.map(item => {
+                  {itemsInCategory.map((item, index) => {
                     const totalCount = getTotalCartCount(item.id);
                     const variantsLength = item.variants.length;
                     const firstVariant = variantsLength > 0
                       ? item.variants[0]
                       : { quantityType: "UNIT", quantityValue: "DEFAULT" };
+                    const isLastItem = index === itemsInCategory.length - 1;
 
                     return (
                       <div
                         key={item.id}
-                        className="w-full flex flex-row items-start p-4 border-b border-gray-100 cursor-pointer"
+                        className={`w-full flex flex-row items-start p-4 cursor-pointer ${
+                          isLastItem ? '' : 'border-b border-gray-100'
+                        }`}
+                        onClick={() => openModal(item)}
                       >
                         <div className="flex-1 flex flex-col pr-4">
                           <h1 className="font-semibold text-lg text-gray-900 select-none cursor-default">
@@ -564,12 +498,6 @@ function Home() {
                           <h2 className="font-semibold text-md text-gray-800 mb-1 select-none cursor-default">
                             ₹ {item.price}
                           </h2>
-                          <div className="flex items-center text-sm mb-2">
-                            <Icon icon="mdi:food-steak" />
-                            <span className="font-medium text-gray-700 select-none cursor-default">
-                              {/* (rating placeholder) */}
-                            </span>
-                          </div>
                           <p className="text-sm text-gray-600 mb-2 leading-relaxed select-none cursor-default">
                             Serves 1 | {
                               expandedItems.includes(item.id)
@@ -580,6 +508,7 @@ function Home() {
                               <span
                                 onClick={(e) => { e.stopPropagation(); toggleExpand(item.id); }}
                                 className="cursor-pointer font-medium text-blue-600 ml-1"
+                                onMouseDown={e => e.stopPropagation()}
                               >
                                 {expandedItems.includes(item.id) ? 'less' : 'more'}
                               </span>
@@ -594,7 +523,7 @@ function Home() {
                             className="w-full h-full object-cover rounded-2xl shadow-md"
                             loading="lazy"
                           />
-
+                          {/* Add to cart buttons */}
                           {variantsLength > 1 ? (
                             totalCount === 0 ? (
                               <button
@@ -606,7 +535,7 @@ function Home() {
                                 style={{
                                   backgroundColor: '#FFFFFF',
                                   color: themeColor,
-                                  boxShadow: `0 2px 4px rgba( ${parseInt(themeColor.slice(1,3),16)}, ${parseInt(themeColor.slice(3,5),16)}, ${parseInt(themeColor.slice(5,7),16)}, 0.2)`,
+                                  boxShadow: `0 2px 4px rgba(${parseInt(themeColor.slice(1, 3), 16)}, ${parseInt(themeColor.slice(3, 5), 16)}, ${parseInt(themeColor.slice(5, 7), 16)}, 0.2)`,
                                   height: '40px',
                                   width: '120px',
                                   display: 'flex',
@@ -681,7 +610,7 @@ function Home() {
                                 style={{
                                   backgroundColor: '#FFFFFF',
                                   color: themeColor,
-                                  boxShadow: `0 2px 4px rgba( ${parseInt(themeColor.slice(1,3),16)}, ${parseInt(themeColor.slice(3,5),16)}, ${parseInt(themeColor.slice(5,7),16)}, 0.2)`,
+                                  boxShadow: `0 2px 4px rgba(${parseInt(themeColor.slice(1, 3), 16)}, ${parseInt(themeColor.slice(3, 5), 16)}, ${parseInt(themeColor.slice(5, 7), 16)}, 0.2)`,
                                   height: '40px',
                                   width: '120px',
                                   display: 'flex',
@@ -758,9 +687,7 @@ function Home() {
         })}
       </div>
 
-      {/* --------------------
-          Modal: Customization (Variants / Add-to-Cart)
-      -------------------- */}
+      {/* Customization Modal */}
       {modalVisible && selectedItem && (
         <>
           <div
@@ -788,10 +715,10 @@ function Home() {
               <Icon icon="ic:baseline-close" className="text-2xl" />
             </button>
 
-            {/* Images gallery */}
+            {/* Show all images horizontally scrollable */}
             <div className="flex overflow-x-auto space-x-4 mb-4">
-              {selectedItem.images && selectedItem.images.length > 0 ? (
-                selectedItem.images.map((img, idx) => (
+              {(selectedItem.imageUrls && selectedItem.imageUrls.length > 0) ? (
+                selectedItem.imageUrls.map((img, idx) => (
                   <img
                     key={idx}
                     src={img}
@@ -810,16 +737,14 @@ function Home() {
               )}
             </div>
 
-            {/* Item info */}
             <h2 className="text-2xl font-bold mb-2 select-none m-0">{selectedItem.name}</h2>
             <p className="text-gray-700 mb-2 select-none">{selectedItem.description}</p>
 
-            {/* Variant selection */}
             <div className="mb-4">
               <h3 className="font-semibold mb-2 select-none">Choose portion</h3>
               <div className="flex gap-4 flex-wrap">
                 {selectedItem.variants.map((variant, idx) => {
-                  const isSelected = selectedVariant 
+                  const isSelected = selectedVariant
                     && JSON.stringify(selectedVariant) === JSON.stringify(variant);
                   const priceToShow = variant.salePrice ?? variant.listPrice;
                   const cartCountForVar = getCartCountForVariant(selectedItem.id, variant);
@@ -845,7 +770,7 @@ function Home() {
                         fontSize: '0.85rem',
                       }}
                     >
-                      {variant.quantityValue} ({priceToShow} ₹) 
+                      {variant.quantityValue} ({priceToShow} ₹)
                       {cartCountForVar > 0 && ` x${cartCountForVar}`}
                     </button>
                   );
@@ -853,12 +778,10 @@ function Home() {
               </div>
             </div>
 
-            {/* Price */}
             <p className="font-semibold text-lg mb-4 select-none">
               Price: ₹ {selectedVariant?.salePrice ?? selectedVariant?.listPrice ?? selectedItem.price}
             </p>
 
-            {/* Add to cart controls inside modal */}
             {getCartCountForVariant(selectedItem.id, selectedVariant) === 0 ? (
               <button
                 onClick={() => {
@@ -868,7 +791,7 @@ function Home() {
                 style={{
                   backgroundColor: '#FFFFFF',
                   color: themeColor,
-                  boxShadow: `0 2px 4px rgba( ${parseInt(themeColor.slice(1,3),16)}, ${parseInt(themeColor.slice(3,5),16)}, ${parseInt(themeColor.slice(5,7),16)}, 0.2)`,
+                  boxShadow: `0 2px 4px rgba(${parseInt(themeColor.slice(1, 3), 16)}, ${parseInt(themeColor.slice(3, 5), 16)}, ${parseInt(themeColor.slice(5, 7), 16)}, 0.2)`,
                 }}
               >
                 ADD
@@ -898,19 +821,31 @@ function Home() {
         </>
       )}
 
-      {/* --------------------
-          AddCart (fixed bottom “View Basket” bar)
-      -------------------- */}
+      {/* Footer naturally at bottom */}
+      <div className="px-4 py-4 bg-gray-100 text-center text-gray-600 text-sm select-none rounded-t-lg border-t border-gray-300 mt-auto">
+        <p className="font-semibold text-gray-700 mb-1">Kottayam Nights Family Restro</p>
+        <p className="text-gray-600 mb-1">Kottayam, Peroor 686637</p>
+        <div className="border-t border-gray-300 pt-2 mt-2 text-xs text-gray-500">
+          © 2025.{' '}
+          <a
+            href="https://tablebite.in"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-600 underline"
+          >
+            tablebite.in
+          </a>
+        </div>
+      </div>
+
       <AddCart
         themeColor={themeColor}
         cartCount={cartItems.length}
         cartItems={cartItems}
         onSearchIconClick={scrollToSearchBar}
+        onRemoveItem={handleRemoveCartItem}
       />
 
-      {/* --------------------
-          Floating “MENU” Button (uses themeColor)
-      -------------------- */}
       <div
         onClick={handleMenuToggle}
         className="fixed"
@@ -929,51 +864,47 @@ function Home() {
           fontSize: '14px',
           userSelect: 'none',
           cursor: 'pointer',
-          zIndex: 100
+          zIndex: 50,
         }}
       >
         MENU
       </div>
 
-      {/* --------------------
-          Slide-Up Panel (with outside-click overlay)
-      -------------------- */}
       {menuVisible && (
         <>
-          {/* Overlay to catch outside clicks */}
           <div
-            className="fixed inset-0 z-70"
+            className="fixed inset-0"
             onClick={() => setMenuVisible(false)}
+            style={{
+              backgroundColor: 'rgba(0, 0, 0, 0.7)',
+              zIndex: 70,
+            }}
           />
 
           <div
-            className="fixed left-0 right-0 bottom-0 z-80"
+            className="fixed left-1/2 bottom-16 rounded-t-xl overflow-hidden"
             style={{
-              backgroundColor: '#1f1f1f',
-              maxHeight: '50%',
-              borderTopLeftRadius: '16px',
-              borderTopRightRadius: '16px',
-              overflowY: 'auto'
+              backgroundColor: '#121212',
+              width: '320px',
+              maxHeight: '60vh',
+              overflowY: 'auto',
+              boxShadow: '0 0 20px rgba(0,0,0,0.8)',
+              transform: 'translateX(-50%)',
+              zIndex: 80,
             }}
             onClick={(e) => e.stopPropagation()}
           >
             <ul>
               {categories.map(cat => {
-                // Count how many items belong to this category
                 const countInCategory = items.filter(i => i.category === cat).length;
                 const isSelected = cat === selectedCategory;
                 return (
-                  <li key={cat} className="border-gray-700">
+                  <li key={cat}>
                     <button
                       onClick={() => {
-                        // 1) Expand and select this category
                         setSelectedCategory(cat);
                         setExpandedCategories([cat]);
-
-                        // 2) Close the slide-up panel
                         setMenuVisible(false);
-
-                        // 3) After a short delay, scroll the category header into view
                         setTimeout(() => {
                           const headerEl = categoryRefs.current[cat];
                           if (headerEl) {
@@ -981,12 +912,10 @@ function Home() {
                           }
                         }, 200);
                       }}
-                      className={`w-full px-4 py-3 flex justify-between items-center ${
-                        isSelected
-                          ? 'text-white font-semibold'
-                          : 'text-gray-300'
-                      } hover:bg-gray-800`}
-                      style={{ userSelect: 'none', cursor: 'pointer' }}
+                      className={`w-full flex justify-between items-center px-5 py-4 ${
+                        isSelected ? 'text-white font-semibold' : 'text-gray-300'
+                      } hover:bg-gray-900`}
+                      style={{ cursor: 'pointer', userSelect: 'none', fontSize: '1rem' }}
                     >
                       <span>{cat}</span>
                       <span>{countInCategory}</span>
@@ -994,7 +923,6 @@ function Home() {
                   </li>
                 );
               })}
-
               {categories.length === 0 && (
                 <li className="px-4 py-3 text-gray-500 select-none cursor-default">
                   No categories available
@@ -1004,6 +932,7 @@ function Home() {
           </div>
         </>
       )}
+
     </div>
   );
 }
