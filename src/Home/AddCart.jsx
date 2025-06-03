@@ -178,16 +178,17 @@ function AddCart({ cartCount = 0, cartItems = [], onViewCart, onRemoveItem, them
                             >
                               ₹{(item.price * item.cartCount).toFixed(2)}
                             </span>
-                            <button
-                              onClick={() => handleRemoveItem(index)}
-                              className="text-red-600 hover:text-red-800 focus:outline-none text-xl"
-                              aria-label={`Remove ${item.name} from cart`}
-                              style={{ cursor: 'pointer', lineHeight: 1 }}
-                            >
-                              &minus;
-                            </button>
-                          </div>
-                        </li>
+                           <button
+                        onClick={() => handleRemoveItem(index)}
+                        className="text-red-600 hover:text-red-800 focus:outline-none text-xl"
+                        aria-label={`Remove ${item.name} from cart`}
+                        style={{ cursor: 'pointer', lineHeight: 1 }}
+                      >
+                      <img width="17" height="17" src="https://img.icons8.com/material-outlined/24/filled-trash.png" alt="filled-trash"/>
+                      </button>
+
+                      </div>
+              </li>
                       );
                     })}
                   </ul>

@@ -330,16 +330,32 @@ const openModal = (item) => {
     setMenuVisible(v => !v);
   };
 
-  const SkeletonLoader = () => (
-    <div className="w-full flex items-start p-4 border-b border-gray-200 animate-pulse">
-      <div className="flex-1 space-y-3">
-        <div className="h-6 bg-gray-200 rounded w-2/3"></div>
-        <div className="h-5 bg-gray-200 rounded w-3/4"></div>
-        <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+const SkeletonLoader = () => (
+  <div className="w-full flex items-start p-4 border-b border-gray-200 animate-pulse">
+    <div className="flex-1 space-y-3">
+      <div className="h-6 bg-gray-200 rounded w-2/3"></div>
+      <div className="h-5 bg-gray-200 rounded w-3/4"></div>
+      <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+    </div>
+    <div className="w-32 h-32 ml-6 bg-gray-200 rounded-lg"></div>
+  </div>
+);
+
+if (loading) {
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-start">
+      {/* Header Section */}
+      <div className="w-full bg-white-smoke-300 mb-8 p-4 animate-pulse">
+        <div className="h-12 bg-gray-200 rounded w-2/3 mb-3"></div> {/* Larger Main Title */}
+        <div className="h-8 bg-gray-200 rounded w-1/2"></div> {/* Larger Subheading */}
       </div>
-      <div className="w-32 h-32 ml-6 bg-gray-200 rounded-lg"></div>
+
+      {/* List of Items */}
+      {Array(5).fill().map((_, idx) => <SkeletonLoader key={idx} />)}
     </div>
   );
+}
+
 
   if (loading) {
     return (
@@ -526,7 +542,6 @@ const openModal = (item) => {
                                 style={{
                                   backgroundColor: '#FFFFFF',
                                   color: themeColor,
-                                  boxShadow: `0 2px 4px rgba(${parseInt(themeColor.slice(1, 3), 16)}, ${parseInt(themeColor.slice(3, 5), 16)}, ${parseInt(themeColor.slice(5, 7), 16)}, 0.2)`,
                                   height: '40px',
                                   width: '120px',
                                   display: 'flex',
@@ -597,11 +612,11 @@ const openModal = (item) => {
                                   e.stopPropagation();
                                   updateToCart(item.id, firstVariant);
                                 }}
-                                className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-[35%] font-medium text-base rounded-full shadow-lg"
+                                className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-[35%] font-medium text-base rounded-full shadow-md"
                                 style={{
+
                                   backgroundColor: '#FFFFFF',
                                   color: themeColor,
-                                  boxShadow: `0 2px 4px rgba(${parseInt(themeColor.slice(1, 3), 16)}, ${parseInt(themeColor.slice(3, 5), 16)}, ${parseInt(themeColor.slice(5, 7), 16)}, 0.2)`,
                                   height: '40px',
                                   width: '120px',
                                   display: 'flex',
@@ -782,7 +797,6 @@ const openModal = (item) => {
                 style={{
                   backgroundColor: '#FFFFFF',
                   color: themeColor,
-                  boxShadow: `0 2px 4px rgba(${parseInt(themeColor.slice(1, 3), 16)}, ${parseInt(themeColor.slice(3, 5), 16)}, ${parseInt(themeColor.slice(5, 7), 16)}, 0.2)`,
                 }}
               >
                 ADD
@@ -822,7 +836,7 @@ const openModal = (item) => {
             href="https://tablebite.in"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-blue-600"
+            className="text-grey-600"
             style={{ textDecoration: 'none' }}
           >
             tablebite.in
