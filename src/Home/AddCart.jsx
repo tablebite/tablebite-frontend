@@ -103,12 +103,11 @@ function AddCart({ cartCount = 0, cartItems = [], onViewCart, onRemoveItem, them
           >
             {/* Modal panel */}
             <div
-              className="fixed left-1/2 top-1/2 rounded-xl overflow-hidden"
+              className="fixed left-1/2 top-1/2 rounded-xl overflow-hidden flex flex-col"
               style={{
                 backgroundColor: '#fff',
                 width: '320px',
                 maxHeight: '60vh',
-                overflowY: 'auto',
                 boxShadow: '0 0 20px rgba(0,0,0,0.8)',
                 transform: 'translate(-50%, -50%)',
                 zIndex: 80,
@@ -125,96 +124,94 @@ function AddCart({ cartCount = 0, cartItems = [], onViewCart, onRemoveItem, them
                 Your Basket
               </h2>
 
-              {cartItems.length > 0 ? (
-                <ul className="px-4 space-y-3">
-                  {cartItems.map((item, index) => {
-                    const isLast = index === cartItems.length - 1;
-                    return (
-                      <li
-                        key={index}
-                        className={`flex justify-between items-center pb-2 ${
-                          !isLast ? 'border-b border-gray-200' : ''
-                        }`}
-                      >
-                        <div className="flex flex-col">
-                          <span
-                            className="font-medium text-sm"
-                            style={{
-                              userSelect: 'none',
-                              cursor: 'default',
-                            }}
-                          >
-                            {item.name}{' '}
-                            {item.variant?.quantityValue &&
-                            item.variant.quantityValue !== 'DEFAULT'
-                              ? `(${item.variant.quantityValue})`
-                              : ''}
-                          </span>
-                          <span
-                            className="text-xs text-gray-500"
-                            style={{
-                              userSelect: 'none',
-                              cursor: 'default',
-                            }}
-                          >
-                            Qty: {item.cartCount}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-4">
-                          <span
-                            className="font-semibold text-sm"
-                            style={{
-                              userSelect: 'none',
-                              cursor: 'default',
-                            }}
-                          >
-                            ₹{(item.price * item.cartCount).toFixed(2)}
-                          </span>
-                          <button
-                            onClick={() => handleRemoveItem(index)}
-                            className="text-red-600 hover:text-red-800 focus:outline-none text-xl"
-                            aria-label={`Remove ${item.name} from cart`}
-                            style={{ cursor: 'pointer', lineHeight: 1 }}
-                          >
-                            &minus;
-                          </button>
-                        </div>
-                      </li>
-                    );
-                  })}
-                </ul>
-              ) : (
-                <p
-                  className="text-gray-500 text-center py-4"
-                  style={{
-                    userSelect: 'none',
-                    cursor: 'default',
-                  }}
-                >
-                  Your cart is empty.
-                </p>
-              )}
+              {/* Scrollable items container */}
+              <div
+                style={{
+                  overflowY: 'auto',
+                  flexGrow: 1,
+                  paddingLeft: '1rem',
+                  paddingRight: '1rem',
+                }}
+              >
+                {cartItems.length > 0 ? (
+                  <ul className="space-y-3">
+                    {cartItems.map((item, index) => {
+                      const isLast = index === cartItems.length - 1;
+                      return (
+                        <li
+                          key={index}
+                          className={`flex justify-between items-center pb-2 ${
+                            !isLast ? 'border-b border-gray-200' : ''
+                          }`}
+                        >
+                          <div className="flex flex-col">
+                            <span
+                              className="font-medium text-sm"
+                              style={{
+                                userSelect: 'none',
+                                cursor: 'default',
+                              }}
+                            >
+                              {item.name}{' '}
+                              {item.variant?.quantityValue &&
+                              item.variant.quantityValue !== 'DEFAULT'
+                                ? `(${item.variant.quantityValue})`
+                                : ''}
+                            </span>
+                            <span
+                              className="text-xs text-gray-500"
+                              style={{
+                                userSelect: 'none',
+                                cursor: 'default',
+                              }}
+                            >
+                              Qty: {item.cartCount}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-4">
+                            <span
+                              className="font-semibold text-sm"
+                              style={{
+                                userSelect: 'none',
+                                cursor: 'default',
+                              }}
+                            >
+                              ₹{(item.price * item.cartCount).toFixed(2)}
+                            </span>
+                            <button
+                              onClick={() => handleRemoveItem(index)}
+                              className="text-red-600 hover:text-red-800 focus:outline-none text-xl"
+                              aria-label={`Remove ${item.name} from cart`}
+                              style={{ cursor: 'pointer', lineHeight: 1 }}
+                            >
+                              &minus;
+                            </button>
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                ) : (
+                  <p
+                    className="text-gray-500 text-center py-4"
+                    style={{
+                      userSelect: 'none',
+                      cursor: 'default',
+                    }}
+                  >
+                    Your cart is empty.
+                  </p>
+                )}
+              </div>
 
+              {/* Fixed total section at bottom */}
               {cartItems.length > 0 && (
-                <div className="flex justify-between items-center mt-4 px-4 py-3">
-                  <span
-                    className="font-semibold text-sm"
-                    style={{
-                      userSelect: 'none',
-                      cursor: 'default',
-                    }}
-                  >
-                    Total
-                  </span>
-                  <span
-                    className="font-semibold text-sm"
-                    style={{
-                      userSelect: 'none',
-                      cursor: 'default',
-                    }}
-                  >
-                    ₹{totalPrice.toFixed(2)}
-                  </span>
+                <div
+                  className="flex justify-between items-center px-4 py-3 border-t border-gray-200"
+                  style={{ userSelect: 'none', cursor: 'default' }}
+                >
+                  <span className="font-semibold text-sm">Total</span>
+                  <span className="font-semibold text-sm">₹{totalPrice.toFixed(2)}</span>
                 </div>
               )}
 
