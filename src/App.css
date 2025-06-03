@@ -13,3 +13,26 @@
   background: linear-gradient(to bottom, white, transparent);
   z-index: 10;
 }
+
+/* Ensure app fills full viewport */
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+/* Simulated status bar background */
+.status-bar-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 44px; /* iOS status bar height */
+  background-color: #5e2a84; /* Yahoo purple */
+  z-index: 9999;
+}
+
+/* Push app content below the status bar */
+.app-content {
+  padding-top: 44px;
+}
