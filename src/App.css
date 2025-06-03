@@ -28,7 +28,7 @@ html, body, #root {
   left: 0;
   right: 0;
   height: 44px; /* iOS status bar height */
-  background-color: #5e2a84; /* Yahoo purple */
+  background-color: white; /* Yahoo purple */
   z-index: 9999;
 }
 
