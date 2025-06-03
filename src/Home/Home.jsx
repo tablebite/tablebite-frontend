@@ -312,15 +312,19 @@ function Home() {
     setSelectedCategory(category);
   };
 
-  const openModal = (item) => {
-    setSelectedItem(item);
-    setSelectedVariant(item.variants?.[0] || null);
-    setModalVisible(true);
-  };
+const openModal = (item) => {
+  setSelectedItem(item);
+  setSelectedVariant(item.variants?.[0] || null);
+  setModalVisible(true);
+  document.body.style.overflow = 'hidden';  // Prevent scrolling on body
+};
+
   const closeModal = () => {
-    setModalVisible(false);
-    setTimeout(() => setSelectedItem(null), 300);
-  };
+  setModalVisible(false);
+  setTimeout(() => setSelectedItem(null), 300);
+  document.body.style.overflow = '';  // Re-enable scrolling on body
+};
+
 
   const handleMenuToggle = () => {
     setMenuVisible(v => !v);
@@ -845,7 +849,7 @@ function Home() {
         }}
       />
 
-      <div
+     <div
         onClick={handleMenuToggle}
         className="fixed"
         style={{
@@ -863,11 +867,12 @@ function Home() {
           fontSize: '14px',
           userSelect: 'none',
           cursor: 'pointer',
-          zIndex: 50,
+          zIndex: modalVisible ? 10 : 50,  // Set zIndex conditionally based on modal visibility
         }}
       >
         MENU
       </div>
+
 
       {menuVisible && (
         <>
