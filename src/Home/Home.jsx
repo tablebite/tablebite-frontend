@@ -312,57 +312,44 @@ function Home() {
     setSelectedCategory(category);
   };
 
-const openModal = (item) => {
-  setSelectedItem(item);
-  setSelectedVariant(item.variants?.[0] || null);
-  setModalVisible(true);
-  document.body.style.overflow = 'hidden';  // Prevent scrolling on body
-};
+  const openModal = (item) => {
+    setSelectedItem(item);
+    setSelectedVariant(item.variants?.[0] || null);
+    setModalVisible(true);
+    document.body.style.overflow = 'hidden';  // Prevent scrolling on body
+  };
 
   const closeModal = () => {
-  setModalVisible(false);
-  setTimeout(() => setSelectedItem(null), 300);
-  document.body.style.overflow = '';  // Re-enable scrolling on body
-};
-
+    setModalVisible(false);
+    setTimeout(() => setSelectedItem(null), 300);
+    document.body.style.overflow = '';  // Re-enable scrolling on body
+  };
 
   const handleMenuToggle = () => {
     setMenuVisible(v => !v);
   };
 
-const SkeletonLoader = () => (
-  <div className="w-full flex items-start p-4 border-b border-gray-200 animate-pulse">
-    <div className="flex-1 space-y-3">
-      <div className="h-6 bg-gray-200 rounded w-2/3"></div>
-      <div className="h-5 bg-gray-200 rounded w-3/4"></div>
-      <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-    </div>
-    <div className="w-32 h-32 ml-6 bg-gray-200 rounded-lg"></div>
-  </div>
-);
+  // BUTTON CLICK ANIMATION CLASS
+  // Scale down effect on click or tap for Add/Minus buttons (slightly stronger scale)
+  const buttonClickClass = "transition-transform duration-150 ease-in-out active:scale-90";
 
-if (loading) {
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-start">
-      {/* Header Section */}
-      <div className="w-full bg-white-smoke-300 mb-8 p-4 animate-pulse">
-        <div className="h-12 bg-gray-200 rounded w-2/3 mb-3"></div> {/* Larger Main Title */}
-        <div className="h-8 bg-gray-200 rounded w-1/2"></div> {/* Larger Subheading */}
+  const SkeletonLoader = () => (
+    <div className="w-full flex items-start p-4 border-b border-gray-200 animate-pulse">
+      <div className="flex-1 space-y-3">
+        <div className="h-6 bg-gray-200 rounded w-2/3"></div>
+        <div className="h-5 bg-gray-200 rounded w-3/4"></div>
+        <div className="h-4 bg-gray-200 rounded w-1/2"></div>
       </div>
-
-      {/* List of Items */}
-      {Array(5).fill().map((_, idx) => <SkeletonLoader key={idx} />)}
+      <div className="w-32 h-32 ml-6 bg-gray-200 rounded-lg"></div>
     </div>
   );
-}
-
 
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-start">
-        <div className="flex flex-col px-4 py-6 select-none cursor-default">
-          <div className="h-6 bg-gray-200 rounded w-2/3 mb-2 animate-pulse"></div>
-          <div className="h-8 bg-gray-300 rounded w-1/3 animate-pulse"></div>
+        <div className="w-full bg-white-smoke-300 mb-8 p-4 animate-pulse">
+          <div className="h-12 bg-gray-200 rounded w-2/3 mb-3"></div>
+          <div className="h-8 bg-gray-200 rounded w-1/2"></div>
         </div>
         {Array(5).fill().map((_, idx) => <SkeletonLoader key={idx} />)}
       </div>
@@ -410,7 +397,7 @@ if (loading) {
             style={inputFocused ? { boxShadow: `0 0 0 2px ${themeColor}`, borderColor: themeColor } : {}}
           />
           <button
-            className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-green-600 transition duration-200"
+            className={`absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-green-600 transition duration-200`}
             tabIndex={-1}
           >
             <Icon icon="ic:round-search" className="text-xl" />
@@ -538,7 +525,7 @@ if (loading) {
                                   e.stopPropagation();
                                   openModal(item);
                                 }}
-                                className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-[35%] font-medium text-base rounded-full shadow-lg"
+                                className={`absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-[35%] font-medium text-base rounded-full shadow-lg ${buttonClickClass}`}
                                 style={{
                                   backgroundColor: '#FFFFFF',
                                   color: themeColor,
@@ -570,7 +557,7 @@ if (loading) {
                                     e.stopPropagation();
                                     openModal(item);
                                   }}
-                                  className="flex items-center justify-center rounded-full focus:outline-none"
+                                  className={`flex items-center justify-center rounded-full focus:outline-none ${buttonClickClass}`}
                                   style={{
                                     color: themeColor,
                                     width: '32px',
@@ -593,7 +580,7 @@ if (loading) {
                                     e.stopPropagation();
                                     openModal(item);
                                   }}
-                                  className="flex items-center justify-center rounded-full focus:outline-none"
+                                  className={`flex items-center justify-center rounded-full focus:outline-none ${buttonClickClass}`}
                                   style={{
                                     color: themeColor,
                                     width: '32px',
@@ -612,7 +599,7 @@ if (loading) {
                                   e.stopPropagation();
                                   updateToCart(item.id, firstVariant);
                                 }}
-                                className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-[35%] font-medium text-base rounded-full shadow-md"
+                                className={`absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-[35%] font-medium text-base rounded-full shadow-md ${buttonClickClass}`}
                                 style={{
 
                                   backgroundColor: '#FFFFFF',
@@ -644,7 +631,7 @@ if (loading) {
                                     e.stopPropagation();
                                     minusItems(item.id, firstVariant, true);
                                   }}
-                                  className="flex items-center justify-center rounded-full focus:outline-none"
+                                  className={`flex items-center justify-center rounded-full focus:outline-none ${buttonClickClass}`}
                                   style={{
                                     color: themeColor,
                                     width: '32px',
@@ -668,7 +655,7 @@ if (loading) {
                                     e.stopPropagation();
                                     plusItems(item.id, firstVariant, true);
                                   }}
-                                  className="flex items-center justify-center rounded-full focus:outline-none"
+                                  className={`flex items-center justify-center rounded-full focus:outline-none ${buttonClickClass}`}
                                   style={{
                                     color: themeColor,
                                     width: '32px',
@@ -714,7 +701,7 @@ if (loading) {
             aria-modal="true"
           >
             <button
-              className="absolute top-3 right-3 text-gray-600 hover:text-gray-900"
+              className={`absolute top-3 right-3 text-gray-600 hover:text-gray-900 ${buttonClickClass}`}
               onClick={closeModal}
               aria-label="Close modal"
             >
@@ -764,6 +751,7 @@ if (loading) {
                           ? ''
                           : 'bg-white border-gray-300 text-gray-800'
                         }
+                        ${buttonClickClass}
                       `}
                       style={{
                         cursor: 'pointer',
@@ -793,7 +781,7 @@ if (loading) {
                 onClick={() => {
                   if (selectedVariant) updateToCart(selectedItem.id, selectedVariant);
                 }}
-                className="bg-green-500 text-white font-medium rounded-full px-6 py-2 shadow-lg w-full"
+                className={`bg-green-500 text-white font-medium rounded-full px-6 py-2 shadow-lg w-full ${buttonClickClass}`}
                 style={{
                   backgroundColor: '#FFFFFF',
                   color: themeColor,
@@ -805,7 +793,7 @@ if (loading) {
               <div className="border-2 rounded-full p-1 bg-white flex items-center gap-3 shadow-md w-max mx-auto">
                 <button
                   onClick={() => minusItems(selectedItem.id, selectedVariant, true)}
-                  className="px-3 py-1 font-bold rounded-full text-base focus:outline-none"
+                  className={`px-3 py-1 font-bold rounded-full text-base focus:outline-none ${buttonClickClass}`}
                   style={{ color: themeColor, cursor: 'pointer' }}
                 >
                   <Icon icon="ic:baseline-minus" />
@@ -815,7 +803,7 @@ if (loading) {
                 </span>
                 <button
                   onClick={() => plusItems(selectedItem.id, selectedVariant, true)}
-                  className="px-3 py-1 font-bold rounded-full text-base focus:outline-none"
+                  className={`px-3 py-1 font-bold rounded-full text-base focus:outline-none ${buttonClickClass}`}
                   style={{ color: themeColor, cursor: 'pointer' }}
                 >
                   <Icon icon="ic:baseline-plus" />
@@ -863,9 +851,9 @@ if (loading) {
         }}
       />
 
-     <div
+      <div
         onClick={handleMenuToggle}
-        className="fixed"
+        className={`fixed ${buttonClickClass}`}
         style={{
           bottom: '60px',
           right: '16px',
@@ -881,12 +869,12 @@ if (loading) {
           fontSize: '14px',
           userSelect: 'none',
           cursor: 'pointer',
-          zIndex: modalVisible ? 10 : 50,  // Set zIndex conditionally based on modal visibility
+          zIndex: modalVisible ? 10 : 50,
+          userSelect: 'none',
         }}
       >
         MENU
       </div>
-
 
       {menuVisible && (
         <>
@@ -932,7 +920,7 @@ if (loading) {
                       }}
                       className={`w-full flex justify-between items-center px-5 py-4 ${
                         isSelected ? 'text-white font-semibold' : 'text-gray-300'
-                      } hover:bg-gray-900`}
+                      } hover:bg-gray-900 ${buttonClickClass}`}
                       style={{ cursor: 'pointer', userSelect: 'none', fontSize: '1rem' }}
                     >
                       <span>{cat}</span>
