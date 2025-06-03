@@ -1,11 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 function AddCart({ cartCount = 0, cartItems = [], onViewCart, onRemoveItem, themeColor }) {
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const modalRef = useRef(null);
 
   useEffect(() => {
     if (isModalVisible) {
       document.body.style.overflow = 'hidden';
+      if (modalRef.current) {
+        modalRef.current.focus();
+      }
     } else {
       document.body.style.overflow = '';
     }
@@ -60,9 +64,12 @@ function AddCart({ cartCount = 0, cartItems = [], onViewCart, onRemoveItem, them
           className="text-white text-sm font-semibold flex items-center"
           style={{
             userSelect: 'none',
-            cursor: 'pointer'
+            cursor: 'pointer',
           }}
           onClick={handleViewCart}
+          aria-haspopup="dialog"
+          aria-expanded={isModalVisible}
+          aria-controls="cart-modal"
         >
           VIEW BASKET
           <svg
@@ -78,144 +85,164 @@ function AddCart({ cartCount = 0, cartItems = [], onViewCart, onRemoveItem, them
 
       {/* Modal to Show Cart Items */}
       {isModalVisible && (
-        <div
-          className="fixed inset-0 z-60 flex items-center justify-center bg-black bg-opacity-40"
-          onClick={handleCloseModal}
-        >
+        <>
+          {/* Overlay */}
           <div
-            className="bg-white rounded-lg shadow-lg w-11/12 max-w-md p-4 relative"
-            onClick={(e) => e.stopPropagation()}
+            tabIndex={-1}
+            ref={modalRef}
+            id="cart-modal"
+            className="fixed inset-0"
+            onClick={handleCloseModal}
+            style={{
+              backgroundColor: 'rgba(0, 0, 0, 0.7)',
+              zIndex: 70,
+              outline: 'none',
+            }}
+            role="dialog"
+            aria-modal="true"
           >
-            <h2
-              className="text-lg font-bold mb-4"
+            {/* Modal panel */}
+            <div
+              className="fixed left-1/2 top-1/2 rounded-xl overflow-hidden"
               style={{
-                userSelect: 'none',
-                cursor: 'default',
+                backgroundColor: '#fff',
+                width: '320px',
+                maxHeight: '60vh',
+                overflowY: 'auto',
+                boxShadow: '0 0 20px rgba(0,0,0,0.8)',
+                transform: 'translate(-50%, -50%)',
+                zIndex: 80,
               }}
+              onClick={(e) => e.stopPropagation()}
             >
-              Your Basket
-            </h2>
-
-            {cartItems.length > 0 ? (
-              <div
-                style={{
-                  maxHeight: '300px',
-                  overflowY: 'auto',
-                }}
-              >
-                <ul className="space-y-3">
-                  {cartItems.map((item, index) => (
-                    <li
-                      key={index}
-                      className="flex justify-between items-center border-b border-gray-200 pb-2"
-                    >
-                      <div className="flex flex-col">
-                        <span
-                          className="font-medium text-sm"
-                          style={{
-                            userSelect: 'none',
-                            cursor: 'default',
-                          }}
-                        >
-                          {item.name}{' '}
-                          {item.variant?.quantityValue &&
-                            item.variant.quantityValue !== 'DEFAULT'
-                            ? `(${item.variant.quantityValue})`
-                            : ''}
-                        </span>
-                        <span
-                          className="text-xs text-gray-500"
-                          style={{
-                            userSelect: 'none',
-                            cursor: 'default',
-                          }}
-                        >
-                          Qty: {item.cartCount}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <span
-                          className="font-semibold text-sm"
-                          style={{
-                            userSelect: 'none',
-                            cursor: 'default',
-                          }}
-                        >
-                          ₹{(item.price * item.cartCount).toFixed(2)}
-                        </span>
-                        <button
-                          onClick={() => handleRemoveItem(index)}
-                          className="text-red-600 hover:text-red-800 focus:outline-none"
-                          aria-label={`Remove ${item.name} from cart`}
-                          style={{ cursor: 'pointer' }}
-                        >
-                          &#10005;
-                        </button>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ) : (
-              <p
-                className="text-gray-500 text-center py-4"
+              <h2
+                className="text-lg font-bold mb-4 px-4 pt-4"
                 style={{
                   userSelect: 'none',
                   cursor: 'default',
                 }}
               >
-                Your cart is empty.
-              </p>
-            )}
+                Your Basket
+              </h2>
 
-            {cartItems.length > 0 && (
-              <div className="flex justify-between items-center mt-4">
-                <span
-                  className="font-semibold text-sm"
+              {cartItems.length > 0 ? (
+                <ul className="px-4 space-y-3">
+                  {cartItems.map((item, index) => {
+                    const isLast = index === cartItems.length - 1;
+                    return (
+                      <li
+                        key={index}
+                        className={`flex justify-between items-center pb-2 ${
+                          !isLast ? 'border-b border-gray-200' : ''
+                        }`}
+                      >
+                        <div className="flex flex-col">
+                          <span
+                            className="font-medium text-sm"
+                            style={{
+                              userSelect: 'none',
+                              cursor: 'default',
+                            }}
+                          >
+                            {item.name}{' '}
+                            {item.variant?.quantityValue &&
+                            item.variant.quantityValue !== 'DEFAULT'
+                              ? `(${item.variant.quantityValue})`
+                              : ''}
+                          </span>
+                          <span
+                            className="text-xs text-gray-500"
+                            style={{
+                              userSelect: 'none',
+                              cursor: 'default',
+                            }}
+                          >
+                            Qty: {item.cartCount}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <span
+                            className="font-semibold text-sm"
+                            style={{
+                              userSelect: 'none',
+                              cursor: 'default',
+                            }}
+                          >
+                            ₹{(item.price * item.cartCount).toFixed(2)}
+                          </span>
+                          <button
+                            onClick={() => handleRemoveItem(index)}
+                            className="text-red-600 hover:text-red-800 focus:outline-none text-xl"
+                            aria-label={`Remove ${item.name} from cart`}
+                            style={{ cursor: 'pointer', lineHeight: 1 }}
+                          >
+                            &minus;
+                          </button>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              ) : (
+                <p
+                  className="text-gray-500 text-center py-4"
                   style={{
                     userSelect: 'none',
                     cursor: 'default',
                   }}
                 >
-                  Total: ₹{totalPrice.toFixed(2)}
-                </span>
-                <button
-                  className="px-4 py-2 rounded-md text-white"
-                  style={{
-                    backgroundColor: themeColor,
-                    userSelect: 'none',
-                    cursor: 'pointer'
-                  }}
-                  onClick={() => alert('Proceeding to Checkout...')}
-                >
-                  Checkout
-                </button>
-              </div>
-            )}
+                  Your cart is empty.
+                </p>
+              )}
 
-            <button
-              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
-              onClick={handleCloseModal}
-              aria-label="Close modal"
-            >
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                <path
-                  fillRule="evenodd"
-                  d="M4.293 4.293a1 1 0 
-                  011.414 0L10 8.586l4.293-4.293a1 
-                  1 0 111.414 1.414L11.414 
-                  10l4.293 4.293a1 1 0 
-                  01-1.414 1.414L10 
-                  11.414l-4.293 4.293a1 1 0 
-                  01-1.414-1.414L8.586 
-                  10 4.293 5.707a1 1 0 
-                  010-1.414z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </button>
+              {cartItems.length > 0 && (
+                <div className="flex justify-between items-center mt-4 px-4 py-3">
+                  <span
+                    className="font-semibold text-sm"
+                    style={{
+                      userSelect: 'none',
+                      cursor: 'default',
+                    }}
+                  >
+                    Total
+                  </span>
+                  <span
+                    className="font-semibold text-sm"
+                    style={{
+                      userSelect: 'none',
+                      cursor: 'default',
+                    }}
+                  >
+                    ₹{totalPrice.toFixed(2)}
+                  </span>
+                </div>
+              )}
+
+              <button
+                className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+                onClick={handleCloseModal}
+                aria-label="Close modal"
+                style={{ cursor: 'pointer' }}
+              >
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    fillRule="evenodd"
+                    d="M4.293 4.293a1 1 0 
+                    011.414 0L10 8.586l4.293-4.293a1 
+                    1 0 111.414 1.414L11.414 
+                    10l4.293 4.293a1 1 0 
+                    01-1.414 1.414L10 
+                    11.414l-4.293 4.293a1 1 0 
+                    01-1.414-1.414L8.586 
+                    10 4.293 5.707a1 1 0 
+                    010-1.414z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </button>
+            </div>
           </div>
-        </div>
+        </>
       )}
     </>
   );

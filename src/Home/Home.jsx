@@ -253,7 +253,6 @@ function Home() {
 
   useEffect(() => {
     if (debouncedSearch.trim() === '') {
-      // No search term — revert to default behavior: expand first category
       if (categories.length > 0) {
         setExpandedCategories([categories[0]]);
         setSelectedCategory(categories[0]);
@@ -261,7 +260,6 @@ function Home() {
       return;
     }
 
-    // Find categories that have filtered items
     const matchingCategories = categories.filter(cat =>
       filteredItems.some(item => item.category === cat)
     );
@@ -270,7 +268,6 @@ function Home() {
       setExpandedCategories(matchingCategories);
       setSelectedCategory(matchingCategories[0]);
 
-      // Scroll first matching category header into view
       setTimeout(() => {
         const el = categoryRefs.current[matchingCategories[0]];
         if (el) {
@@ -278,7 +275,6 @@ function Home() {
         }
       }, 100);
     } else {
-      // No categories matched, collapse all
       setExpandedCategories([]);
       setSelectedCategory(null);
     }
@@ -288,15 +284,6 @@ function Home() {
     setSelectedType(t => t === type ? '' : type);
   }, []);
   const handleSearchChange = (e) => setSearchTerm(e.target.value);
-
-const scrollToSearchBar = useCallback(() => {
-  if (searchInputRef.current) {
-    skipHighlightOnFocus.current = true;
-    searchInputRef.current.scrollIntoView({ behavior: 'smooth' });
-    searchInputRef.current.focus();
-  }
-}, []);
-
 
   const toggleExpand = useCallback((id) => {
     setExpandedItems(prev =>
@@ -516,7 +503,7 @@ const scrollToSearchBar = useCallback(() => {
                           </p>
                         </div>
 
-                        <div className="relative w-36 h-36">
+                        <div className="relative w-36 h-36 mb-3">
                           <img
                             src={item.imageUrl}
                             alt={item.name}
@@ -831,7 +818,8 @@ const scrollToSearchBar = useCallback(() => {
             href="https://tablebite.in"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-blue-600 underline"
+            className="text-blue-600"
+            style={{ textDecoration: 'none' }}
           >
             tablebite.in
           </a>
@@ -842,8 +830,19 @@ const scrollToSearchBar = useCallback(() => {
         themeColor={themeColor}
         cartCount={cartItems.length}
         cartItems={cartItems}
-        onSearchIconClick={scrollToSearchBar}
-        onRemoveItem={handleRemoveCartItem}
+        onSearchIconClick={() => {
+          if (searchInputRef.current) {
+            searchInputRef.current.scrollIntoView({ behavior: 'smooth' });
+            searchInputRef.current.focus();
+          }
+        }}
+        onRemoveItem={(index) => {
+          setCartItems(prev => {
+            const updated = [...prev];
+            updated.splice(index, 1);
+            return updated;
+          });
+        }}
       />
 
       <div
@@ -882,7 +881,7 @@ const scrollToSearchBar = useCallback(() => {
           />
 
           <div
-            className="fixed left-1/2 bottom-16 rounded-t-xl overflow-hidden"
+            className="fixed left-1/2 bottom-16 rounded-xl overflow-hidden"
             style={{
               backgroundColor: '#121212',
               width: '320px',
