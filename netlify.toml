@@ -1,17 +1,13 @@
-[build]
-  base = "."
-  command = "npm run build"   # Build both projects at once
-  publish = "build"           # The build folder for React
+# netlify.toml
 
-[[plugins]]
-  package = "@netlify/plugin-nextjs"
+[[builds]]
+  base = "dashboard"  # This points to the dashboard directory
+  cmd = "npm install && npm run build"  # Run the build for the dashboard app
+  publish = "dashboard/build"  # Specify the build directory for the dashboard app
+  directory = "dashboard"  # Set the working directory for the dashboard
 
-[[redirects]]
-  from = "/dashboard/*"
-  to = "/dashboard/index.html"
-  status = 200
-
-[[redirects]]
-  from = "/menu/*"
-  to = "/menu/public/index.html"
-  status = 200
+[[builds]]
+  base = "menu"  # This points to the menu directory
+  cmd = "npm install && npm run build"  # Run the build for the menu app
+  publish = "menu/build"  # Specify the build directory for the menu app
+  directory = "menu"  # Set the working directory for the menu
