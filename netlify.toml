@@ -1,22 +1,11 @@
 # Configuration for menu app
 [[builds]]
-base = "menu"  
-publish = "menu/"  
-command = "npm run build"  # build command for menu app
+base = "menu"  # Directory where the menu app's package.json is located
+publish = "menu/build"  # Output directory of the build
+command = "npm run build"  # Build command for menu app
 
 # Configuration for dashboard app
 [[builds]]
-base = "dashboard"  # directory where the dashboard app is
-publish = "dashboard/"  # output directory of the build
-command = "npm run build"  # build command for dashboard app
-
-# Optional: Redirect paths if needed (for single site deployment with different paths)
-[[redirects]]
-from = "/menu/*"
-to = "/menu/:splat"
-status = 200
-
-[[redirects]]
-from = "/dashboard/*"
-to = "/dashboard/:splat"
-status = 200
+base = "dashboard"  # Directory where the dashboard app's package.json is located
+publish = "dashboard/build"  # Output directory of the build
+command = "npm run build"  # Build command for dashboard app
