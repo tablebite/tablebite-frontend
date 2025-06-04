@@ -1,0 +1,24 @@
+{
+  "name": "tablebite-frontend",
+  "private": true,
+  "scripts": {
+    "install": "npm install --legacy-peer-deps",
+    "start": "npm run start --workspace menu && npm run start --workspace dashboard",
+    "build": "npm run build --workspace menu && npm run build --workspace dashboard",
+    "test": "npm run test --workspace menu && npm run test --workspace dashboard",
+    "lint": "eslint . --ext .js,.ts,.jsx,.tsx"
+  },
+  "dependencies": {
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "tablebite-frontend": "file:"
+  },
+  "devDependencies": {
+    "eslint": "^7.32.0",
+    "eslint-config-airbnb": "^18.2.1"
+  },
+  "workspaces": [
+    "menu",
+    "dashboard"
+  ]
+}
