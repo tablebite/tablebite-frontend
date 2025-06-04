@@ -28,7 +28,7 @@ html, body, #root {
   left: 0;
   right: 0;
   height: 44px; /* iOS status bar height */
-  background-color: white; /* Yahoo purple */
+  background-color: transparent; /* Yahoo purple */
   z-index: 9999;
 }
 
@@ -36,3 +36,38 @@ html, body, #root {
 .app-content {
   padding-top: 44px;
 }
+
+
+/* Animation for swipe-up effect on quantity change */
+.quantity-animate {
+  animation: swipeUp 0.3s ease-in-out;
+}
+
+@keyframes swipeUp {
+  0% {
+    transform: translateY(15%); /* Further reduced starting position */
+    opacity: 0;
+  }
+  50% {
+    transform: translateY(-3px); /* Reduced upward movement */
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+
+/* Optimized button click effect */
+.button-click-effect {
+  transition: transform 0.2s ease-in-out; /* Longer transition for a smoother effect */
+  transform-origin: center; /* Ensures the scale is centered */
+}
+
+.button-click-effect:active {
+  transform: scale(0.95); /* Slight shrink on click */
+}
+
+
+
