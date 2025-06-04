@@ -1,8 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-function AddCart({ cartCount = 0, cartItems = [], onViewCart, onRemoveItem, themeColor }) {
-  const [isModalVisible, setIsModalVisible] = useState(false);
+function AddCart({ cartCount = 0, cartItems = [], onViewCart, onRemoveItem, themeColor , isModalVisible, setIsModalVisible,}) {
+
   const modalRef = useRef(null);
+
+  const handleCloseModal = () => {
+  setIsModalVisible(false); // Close the modal
+};
+
+
 
   useEffect(() => {
     if (isModalVisible) {
@@ -18,27 +24,24 @@ function AddCart({ cartCount = 0, cartItems = [], onViewCart, onRemoveItem, them
     };
   }, [isModalVisible]);
 
-  const handleViewCart = () => {
-    if (typeof onViewCart === 'function') {
-      onViewCart();
-    }
-    setIsModalVisible(true);
-  };
+ const handleViewCart = () => {
+  if (typeof onViewCart === 'function') {
+    onViewCart();
+  }
+  setIsModalVisible(true); // Only show the modal when "VIEW BASKET" is clicked
+};
 
-  const handleCloseModal = () => {
-    setIsModalVisible(false);
-  };
+const handleRemoveItem = (index) => {
+  if (typeof onRemoveItem === 'function') {
+    onRemoveItem(index);
+  }
 
-  const totalPrice = cartItems.reduce(
-    (acc, item) => acc + item.price * item.cartCount,
-    0
-  );
+  // Reset the modal if the last item is removed
+  if (cartItems.length === 1) {
+    setIsModalVisible(false); // Close the cart modal when the last item is removed
+  }
+};
 
-  const handleRemoveItem = (index) => {
-    if (typeof onRemoveItem === 'function') {
-      onRemoveItem(index);
-    }
-  };
 
   // Animation class for button click scale effect
   const buttonClickClass = "transition-transform duration-150 ease-in-out active:scale-90";
@@ -47,6 +50,8 @@ function AddCart({ cartCount = 0, cartItems = [], onViewCart, onRemoveItem, them
     return null;
   }
 
+
+  const totalPrice = cartItems.reduce((acc, item) => acc + item.price * item.cartCount, 0)
   return (
     <>
       {/* Fixed Bottom “View Basket” Bar */}
