@@ -13,5 +13,5 @@
 
 [[redirects]]
   from = "/menu/*"
-  to = "/menu/index.html"
+  to = "/menu/public/index.html"
   status = 200
