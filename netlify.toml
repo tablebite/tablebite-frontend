@@ -1,0 +1,17 @@
+[build]
+  base = "."
+  command = "npm run build"   # Build both projects at once
+  publish = "build"           # The build folder for React
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+[[redirects]]
+  from = "/dashboard/*"
+  to = "/dashboard/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/menu/*"
+  to = "/menu/index.html"
+  status = 200
