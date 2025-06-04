@@ -1,9 +1,11 @@
 {
+
   "compilerOptions": {
-    "outDir": "./build",
-    "jsx": "react",
-    // other options
+    "target": "ES2015", // Or later
+    "lib": ["dom", "esnext"] // Add "esnext" to use newer JavaScript features
   },
+
+
   "exclude": [
     "node_modules",
     "eslint.config.js",
