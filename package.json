@@ -4,5 +4,8 @@
     "build": "npm run build:dashboard && npm run build:menu",
     "build:dashboard": "cd dashboard && npm run build",
     "build:menu": "cd menu && npm run build"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3"
   }
 }
