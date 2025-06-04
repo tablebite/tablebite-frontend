@@ -46,6 +46,7 @@ function Home() {
 
   const [menuVisible, setMenuVisible] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [isModalVisible, setIsModalVisible] = useState(false);
 
   const searchInputRef = useRef(null);
 
@@ -195,39 +196,36 @@ function Home() {
   };
 
   const updateCartCount = useCallback((id, variant, delta) => {
-    setCartItems(prev => {
-      const key = cartKey(id, variant);
-      const foundIndex = prev.findIndex(ci => cartKey(ci.id, ci.variant) === key);
+  setCartItems(prev => {
+    const key = cartKey(id, variant);
+    const foundIndex = prev.findIndex(ci => cartKey(ci.id, ci.variant) === key);
 
-      if (foundIndex === -1 && delta > 0) {
-        const selected = items.find(i => i.id === id);
-        if (selected) {
-          return [...prev, { ...selected, variant, cartCount: delta }];
-        }
-        return prev;
-      }
-
-      if (foundIndex !== -1) {
-        const updated = [...prev];
-        const newCount = updated[foundIndex].cartCount + delta;
-        if (newCount > 0) {
-          updated[foundIndex] = { ...updated[foundIndex], cartCount: newCount };
-          return updated;
-        } else {
-          updated.splice(foundIndex, 1);
-          return updated;
-        }
+    if (foundIndex === -1 && delta > 0) {
+      const selected = items.find(i => i.id === id);
+      if (selected) {
+        return [...prev, { ...selected, variant, cartCount: delta }];
       }
       return prev;
-    });
+    }
 
-    setSelectedItem(prev => {
-      if (prev && prev.id === id) {
-        return { ...prev };
+    if (foundIndex !== -1) {
+      const updated = [...prev];
+      const newCount = updated[foundIndex].cartCount + delta;
+      if (newCount > 0) {
+        updated[foundIndex] = { ...updated[foundIndex], cartCount: newCount };
+        return updated;
+      } else {
+        updated.splice(foundIndex, 1);
+        return updated;
       }
-      return prev;
-    });
-  }, [items]);
+    }
+    return prev;
+  });
+
+  // Ensure that the cart modal doesn't open automatically when adding an item.
+  setIsModalVisible(false); // Reset modal state when adding/removing items.
+}, [items]);
+
 
   const updateToCart = useCallback((id, variant) =>
     updateCartCount(id, variant, 1),
@@ -833,23 +831,25 @@ function Home() {
       </div>
 
       <AddCart
-        themeColor={themeColor}
-        cartCount={cartItems.length}
-        cartItems={cartItems}
-        onSearchIconClick={() => {
-          if (searchInputRef.current) {
-            searchInputRef.current.scrollIntoView({ behavior: 'smooth' });
-            searchInputRef.current.focus();
-          }
-        }}
-        onRemoveItem={(index) => {
-          setCartItems(prev => {
-            const updated = [...prev];
-            updated.splice(index, 1);
-            return updated;
-          });
-        }}
-      />
+  isModalVisible={isModalVisible} // Pass state
+  setIsModalVisible={setIsModalVisible} // Pass setter
+  themeColor={themeColor}
+  cartCount={cartItems.length}
+  cartItems={cartItems}
+  onSearchIconClick={() => {
+    if (searchInputRef.current) {
+      searchInputRef.current.scrollIntoView({ behavior: 'smooth' });
+      searchInputRef.current.focus();
+    }
+  }}
+  onRemoveItem={(index) => {
+    setCartItems(prev => {
+      const updated = [...prev];
+      updated.splice(index, 1);
+      return updated;
+    });
+  }}
+/>
 
       <div
         onClick={handleMenuToggle}
