@@ -1,13 +1,7 @@
 {
-  "compilerOptions": {
-    "outDir": "./build",
-    "jsx": "react",
-    // other options
-  },
-  "exclude": [
-    "node_modules",
-    "eslint.config.js",
-    "postcss.config.js",
-    "vite.config.ts"
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.node.json" }
   ]
 }
