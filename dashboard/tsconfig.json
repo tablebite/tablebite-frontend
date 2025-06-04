@@ -1,8 +1,13 @@
 {
   "compilerOptions": {
+    "outDir": "./build",
     "jsx": "react",
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "allowJs": true
-  }
+    // other options
+  },
+  "exclude": [
+    "node_modules",
+    "eslint.config.js",
+    "postcss.config.js",
+    "vite.config.ts"
+  ]
 }
