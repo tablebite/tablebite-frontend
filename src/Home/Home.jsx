@@ -14,6 +14,7 @@ import {
   getRestaurantByRestaurantId
 } from '../Services/allApi';
 import AddCart from './AddCart';
+import '../App.css'; 
 
 function useDebounce(value, delay) {
   const [debounced, setDebounced] = useState(value);
@@ -48,6 +49,9 @@ function Home() {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
 
+  const [animationTrigger, setAnimationTrigger] = useState(null);
+
+
   const searchInputRef = useRef(null);
 
   const [themeColor, setThemeColor] = useState(() => {
@@ -78,6 +82,17 @@ function Home() {
   }, [menuVisible]);
 
   const categoryRefs = useRef({});
+
+  useEffect(() => {
+  if (animationTrigger) {
+    const timer = setTimeout(() => {
+      setAnimationTrigger(null);
+    }, 200); // Same as animation duration
+
+    return () => clearTimeout(timer);
+  }
+}, [animationTrigger]);
+
 
   useEffect(() => {
     let isMounted = true;
@@ -195,7 +210,7 @@ function Home() {
     return cartItems.reduce((total, ci) => ci.id === id ? total + ci.cartCount : total, 0);
   };
 
-  const updateCartCount = useCallback((id, variant, delta) => {
+ const updateCartCount = useCallback((id, variant, delta) => {
   setCartItems(prev => {
     const key = cartKey(id, variant);
     const foundIndex = prev.findIndex(ci => cartKey(ci.id, ci.variant) === key);
@@ -222,32 +237,35 @@ function Home() {
     return prev;
   });
 
-  // Ensure that the cart modal doesn't open automatically when adding an item.
+  // Trigger the animation
+  setAnimationTrigger({ id, variant });
   setIsModalVisible(false); // Reset modal state when adding/removing items.
 }, [items]);
+
 
 
   const updateToCart = useCallback((id, variant) =>
     updateCartCount(id, variant, 1),
     [updateCartCount]);
 
-  const plusItems = useCallback((id, variant, isSimple) => {
-    if (!isSimple) {
-      const item = items.find(i => i.id === id);
-      if (item) openModal(item);
-      return;
-    }
-    updateCartCount(id, variant, 1);
-  }, [updateCartCount, items]);
+ const plusItems = useCallback((id, variant, isSimple) => {
+  if (!isSimple) {
+    const item = items.find(i => i.id === id);
+    if (item) openModal(item);
+    return;
+  }
+  updateCartCount(id, variant, 1);
+}, [updateCartCount, items]);
 
-  const minusItems = useCallback((id, variant, isSimple) => {
-    if (!isSimple) {
-      const item = items.find(i => i.id === id);
-      if (item) openModal(item);
-      return;
-    }
-    updateCartCount(id, variant, -1);
-  }, [updateCartCount, items]);
+const minusItems = useCallback((id, variant, isSimple) => {
+  if (!isSimple) {
+    const item = items.find(i => i.id === id);
+    if (item) openModal(item);
+    return;
+  }
+  updateCartCount(id, variant, -1);
+}, [updateCartCount, items]);
+
 
   useEffect(() => {
     if (debouncedSearch.trim() === '') {
@@ -566,12 +584,13 @@ function Home() {
                                   <Icon icon="ic:baseline-minus" />
                                 </button>
 
-                                <span
-                                  className="font-bold text-base"
-                                  style={{ color: themeColor, minWidth: '24px', textAlign: 'center' }}
-                                >
-                                  {totalCount}
-                                </span>
+                             <span
+  className={`font-bold text-base ${animationTrigger && animationTrigger.id === item.id ? 'quantity-animate' : ''}`}
+  style={{ color: themeColor, minWidth: '24px', textAlign: 'center' }}
+>
+  {totalCount}
+</span>
+
 
                                 <button
                                   onClick={(e) => {
@@ -641,12 +660,13 @@ function Home() {
                                   <Icon icon="ic:baseline-minus" />
                                 </button>
 
-                                <span
-                                  className="font-bold text-base"
-                                  style={{ color: themeColor, minWidth: '24px', textAlign: 'center' }}
-                                >
-                                  {totalCount}
-                                </span>
+                              <span
+                            className={`font-bold text-base ${animationTrigger && animationTrigger.id === item.id ? 'quantity-animate' : ''}`}
+                            style={{ color: themeColor, minWidth: '24px', textAlign: 'center' }}
+                          >
+                            {totalCount}
+                          </span>
+
 
                                 <button
                                   onClick={(e) => {
@@ -796,7 +816,12 @@ function Home() {
                 >
                   <Icon icon="ic:baseline-minus" />
                 </button>
-                <span className="font-bold text-base" style={{ color: themeColor }}>
+             
+
+                                              <span
+  className={`font-bold text-base ${animationTrigger && animationTrigger.id === selectedItem.id ? 'quantity-animate' : ''}`}
+  style={{ color: themeColor, minWidth: '24px', textAlign: 'center' }}
+>
                   {getCartCountForVariant(selectedItem.id, selectedVariant)}
                 </span>
                 <button
@@ -876,68 +901,76 @@ function Home() {
         MENU
       </div>
 
-      {menuVisible && (
-        <>
-          <div
-            className="fixed inset-0"
-            onClick={() => setMenuVisible(false)}
-            style={{
-              backgroundColor: 'rgba(0, 0, 0, 0.7)',
-              zIndex: 70,
-            }}
-          />
+    {menuVisible && (
+  <>
+    <div
+      className="fixed inset-0"
+      onClick={() => setMenuVisible(false)}
+      style={{
+        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+        zIndex: 70,
+      }}
+    />
 
-          <div
-            className="fixed left-1/2 bottom-16 rounded-xl overflow-hidden"
-            style={{
-              backgroundColor: '#121212',
-              width: '320px',
-              maxHeight: '60vh',
-              overflowY: 'auto',
-              boxShadow: '0 0 20px rgba(0,0,0,0.8)',
-              transform: 'translateX(-50%)',
-              zIndex: 80,
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <ul>
-              {categories.map(cat => {
-                const countInCategory = items.filter(i => i.category === cat).length;
-                const isSelected = cat === selectedCategory;
-                return (
-                  <li key={cat}>
-                    <button
-                      onClick={() => {
-                        setSelectedCategory(cat);
-                        setExpandedCategories([cat]);
-                        setMenuVisible(false);
-                        setTimeout(() => {
-                          const headerEl = categoryRefs.current[cat];
-                          if (headerEl) {
-                            headerEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                          }
-                        }, 200);
-                      }}
-                      className={`w-full flex justify-between items-center px-5 py-4 ${
-                        isSelected ? 'text-white font-semibold' : 'text-gray-300'
-                      } hover:bg-gray-900 ${buttonClickClass}`}
-                      style={{ cursor: 'pointer', userSelect: 'none', fontSize: '1rem' }}
-                    >
-                      <span>{cat}</span>
-                      <span>{countInCategory}</span>
-                    </button>
-                  </li>
-                );
-              })}
-              {categories.length === 0 && (
-                <li className="px-4 py-3 text-gray-500 select-none cursor-default">
-                  No categories available
-                </li>
-              )}
-            </ul>
-          </div>
-        </>
-      )}
+    <div
+      className="fixed left-1/2 bottom-16 rounded-xl overflow-hidden"
+      style={{
+        backgroundColor: '#121212',
+        width: '320px',
+        maxHeight: '60vh',
+        overflowY: 'auto',
+        boxShadow: '0 0 20px rgba(0,0,0,0.8)',
+        transform: 'translateX(-50%)',
+        zIndex: 80,
+      }}
+      onClick={(e) => e.stopPropagation()}
+    >
+      <ul>
+        {categories.map(cat => {
+          const countInCategory = items.filter(i => i.category === cat).length;
+          const isSelected = cat === selectedCategory;
+          return (
+            <li key={cat}>
+              <button
+                onClick={() => {
+                  setSelectedCategory(cat);
+                  setExpandedCategories([cat]);
+                  setMenuVisible(false);
+                  setTimeout(() => {
+                    const headerEl = categoryRefs.current[cat];
+                    if (headerEl) {
+                      headerEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                  }, 200);
+                }}
+                className={`w-full flex justify-between items-center px-5 py-4 ${
+                  isSelected
+                    ? 'text-white font-semibold'
+                    : 'text-gray-300'
+                } ${buttonClickClass}`}  // Removed hover styles
+                style={{
+                  cursor: 'pointer',
+                  userSelect: 'none',
+                  fontSize: '1rem',
+                }}
+              >
+                <span>{cat}</span>
+                <span>{countInCategory}</span>
+              </button>
+            </li>
+          );
+        })}
+        {categories.length === 0 && (
+          <li className="px-4 py-3 text-gray-500 select-none cursor-default">
+            No categories available
+          </li>
+        )}
+      </ul>
+    </div>
+  </>
+)}
+
+
 
     </div>
   );
