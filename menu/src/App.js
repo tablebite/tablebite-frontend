@@ -1,11 +1,14 @@
-import React from "react";
 import { Route, Routes } from "react-router-dom";
 import Home from "./Home/Home";
-import DashboardSA from "./Super-admin/DashboardSA";
-import HomeSDashboard from "./Super-admin/HomeSDashboard";
-import ViewMenus from "./Super-admin/ViewMenus"; 
-import AddRestaurant from "./Super-admin/AddRestaurant";
-import ViewRestaurants from "./Super-admin/ViewRestaurants";
+import Dashboard from "./Super-admin/Dashboard";
+import Charts from "./Super-admin/BlankPage";
+import Modal from "./Super-admin/ModalsPage";
+import Buttons from "./Super-admin/ButtonsPage";
+import Cards from "./Super-admin/Cards";
+import Tables from "./Super-admin/CreateAccount";
+import Forms from "./Super-admin/FormsPage";
+
+
 import Landing from "./Landin-Page/Landing";
 
 function App() {
@@ -17,13 +20,8 @@ function App() {
       <div className="app-content">
         {hostname === "superadmin.tablebite.in" ? (
           <Routes>
-            <Route path="/" element={<HomeSDashboard />}>
+            <Route path="/" element={< Dashboard  />}>
               <Route index element={<h1>Welcome to the Super Admin Dashboard</h1>} />
-              <Route path="add-menu" element={<DashboardSA />} />
-              <Route path="view-menus" element={<ViewMenus />} />
-              <Route path="add-restaurants" element={<AddRestaurant />} />
-              <Route path="view-restaurants" element={<ViewRestaurants />} />
-              <Route path="settings" element={<h1>Settings Section</h1>} />
             </Route>
             <Route path="*" element={<h1>Page Not Found</h1>} />
           </Routes>
