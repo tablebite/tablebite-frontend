@@ -32,10 +32,6 @@ html, body, #root {
   z-index: 9999;
 }
 
-/* Push app content below the status bar */
-.app-content {
-  padding-top: 44px;
-}
 
 
 /* Animation for swipe-up effect on quantity change */
