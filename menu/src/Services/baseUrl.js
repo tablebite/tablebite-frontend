@@ -1,2 +1,2 @@
-export const CATELOG_BASEURL = 'https://api.tablebite.in/catalog'
-export const ORGANIZATION_BASEURL = 'https://api.tablebite.in/organization'
+export const CATELOG_BASEURL = 'http://api.tablebite.in/catalog'
+export const ORGANIZATION_BASEURL = 'http://api.tablebite.in/organization'
