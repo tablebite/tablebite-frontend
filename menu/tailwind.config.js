@@ -197,6 +197,7 @@ module.exports = {
   },
   plugins: [
     require('@tailwindcss/forms'),
+    require('autoprefixer'),
     plugin(({ addUtilities, e, theme, variants }) => {
       const newUtilities = {}
       Object.entries(theme('colors')).map(([name, value]) => {
