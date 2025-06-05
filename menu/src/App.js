@@ -18,7 +18,7 @@ function App() {
     <>
       <div className="status-bar-background" />
       <div className="app-content">
-        {hostname === "superadmin.tablebite.in" ? (
+        {hostname === "superadmin.tablebite.in" ||  hostname === "admin.tablebite.in"? (
           <Routes>
             <Route path="/" element={< Dashboard  />}>
               <Route index element={<h1>Welcome to the Super Admin Dashboard</h1>} />
