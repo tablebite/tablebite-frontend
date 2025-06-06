@@ -51,11 +51,8 @@ function Home() {
 
   const [animationTrigger, setAnimationTrigger] = useState(null);
 
-  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
-  const [isSticky, setIsSticky] = useState(false); // To track sticky state during scroll
-  const searchInputRef = useRef(null);
 
-  
+  const searchInputRef = useRef(null);
 
   const [themeColor, setThemeColor] = useState(() => {
     return localStorage.getItem('themeColor') || "#e4002b";
@@ -348,35 +345,6 @@ const minusItems = useCallback((id, variant, isSimple) => {
     setMenuVisible(v => !v);
   };
 
- // Detect keyboard visibility
-  const handleResize = () => {
-    const isKeyboardVisibleNow = window.innerHeight < 500; // Threshold for detecting keyboard (adjust as needed)
-    setIsKeyboardVisible(isKeyboardVisibleNow);
-  };
-
-  // Detect scroll position to toggle sticky state
-  const handleScroll = () => {
-    if (window.scrollY > 0) {
-      setIsSticky(true);  // Becomes sticky after scroll
-    } else {
-      setIsSticky(false);  // Reverts to normal when at the top
-    }
-  };
-
-  useEffect(() => {
-    window.addEventListener('resize', handleResize);
-    window.addEventListener('scroll', handleScroll);
-
-    // Initial check for keyboard visibility
-    handleResize();
-    handleScroll(); // Initial scroll check
-
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, []);
-
   // BUTTON CLICK ANIMATION CLASS
   // Scale down effect on click or tap for Add/Minus buttons (slightly stronger scale)
   const buttonClickClass = "transition-transform duration-150 ease-in-out active:scale-90";
@@ -432,35 +400,26 @@ const minusItems = useCallback((id, variant, isSimple) => {
       </div>
 
       {/* Search Bar */}
-     <div
-      ref={searchInputRef}
-      className={`${
-        isKeyboardVisible || isSticky ? 'fixed top-0 left-0 w-full z-10' : 'sticky top-0 z-10'
-      } p-4 bg-white`}
-    >
-      <div className="relative w-full">
-        <input
-          className="w-full bg-white text-gray-700 text-base placeholder-gray-500 px-5 py-3 rounded-full border border-gray-300 focus:outline-none shadow-sm transition duration-200 text-[16px]"
-          type="text"
-          value={searchTerm}
-          onChange={handleSearchChange}
-          placeholder="Search for dishes"
-          onFocus={() => setInputFocused(true)}
-          onBlur={() => setInputFocused(false)}
-          style={
-            inputFocused
-              ? { boxShadow: `0 0 0 2px ${themeColor}`, borderColor: themeColor }
-              : {}
-          }
-        />
-        <button
-          className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-green-600 transition duration-200"
-          tabIndex={-1}
-        >
-          <Icon icon="ic:round-search" className="text-xl" />
-        </button>
+      <div className="sticky top-0 z-10 p-4 bg-white">
+        <div className="relative w-full" ref={searchInputRef}>
+          <input
+            className="w-full bg-white text-gray-700 text-base placeholder-gray-500 px-5 py-3 rounded-full border border-gray-300 focus:outline-none shadow-sm transition duration-200 text-[16px]"
+            type="text"
+            value={searchTerm}
+            onChange={handleSearchChange}
+            placeholder="Search for dishes"
+            onFocus={() => setInputFocused(true)}
+            onBlur={() => setInputFocused(false)}
+            style={inputFocused ? { boxShadow: `0 0 0 2px ${themeColor}`, borderColor: themeColor } : {}}
+          />
+          <button
+            className={`absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-green-600 transition duration-200`}
+            tabIndex={-1}
+          >
+            <Icon icon="ic:round-search" className="text-xl" />
+          </button>
+        </div>
       </div>
-    </div>
 
       {/* Filter Bar */}
       <div className="p-3 border-b border-gray-200 flex items-center gap-4">
