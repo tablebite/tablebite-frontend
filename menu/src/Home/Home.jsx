@@ -348,7 +348,7 @@ const minusItems = useCallback((id, variant, isSimple) => {
     setMenuVisible(v => !v);
   };
 
-  // Detect keyboard visibility
+ // Detect keyboard visibility
   const handleResize = () => {
     const isKeyboardVisibleNow = window.innerHeight < 500; // Threshold for detecting keyboard (adjust as needed)
     setIsKeyboardVisible(isKeyboardVisibleNow);
@@ -357,9 +357,9 @@ const minusItems = useCallback((id, variant, isSimple) => {
   // Detect scroll position to toggle sticky state
   const handleScroll = () => {
     if (window.scrollY > 0) {
-      setIsSticky(true); // Becomes sticky after scroll
+      setIsSticky(true);  // Becomes sticky after scroll
     } else {
-      setIsSticky(false); // Reverts to normal when at the top
+      setIsSticky(false);  // Reverts to normal when at the top
     }
   };
 
@@ -432,12 +432,13 @@ const minusItems = useCallback((id, variant, isSimple) => {
       </div>
 
       {/* Search Bar */}
-       <div
+     <div
+      ref={searchInputRef}
       className={`${
-        isKeyboardVisible ? 'fixed top-0 left-0 w-full z-10' : 'sticky top-0 z-10'
+        isKeyboardVisible || isSticky ? 'fixed top-0 left-0 w-full z-10' : 'sticky top-0 z-10'
       } p-4 bg-white`}
     >
-      <div className="relative w-full" ref={searchInputRef}>
+      <div className="relative w-full">
         <input
           className="w-full bg-white text-gray-700 text-base placeholder-gray-500 px-5 py-3 rounded-full border border-gray-300 focus:outline-none shadow-sm transition duration-200 text-[16px]"
           type="text"
