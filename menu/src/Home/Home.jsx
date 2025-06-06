@@ -302,11 +302,12 @@ const minusItems = useCallback((id, variant, isSimple) => {
   }, []);
   
   
-    const handleSearchChange = (e) => {
+ const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
-    setIsTyping(e.target.value.trim().length > 0);  // Set isTyping to true when user starts typing
+    setIsTyping(e.target.value.trim().length > 0);  // Set isTyping when user starts typing
   };
 
+  
     useEffect(() => {
     if (searchTerm.trim() === '') {
       setIsTyping(false);  // Reset isTyping when the search term is cleared
@@ -400,7 +401,7 @@ const minusItems = useCallback((id, variant, isSimple) => {
     <div className="bg-white min-h-screen w-full font-sans text-gray-800 relative flex flex-col">
 
       {/* Header */}
-      <div className="flex flex-col px-4 py-0 mt-6 select-none cursor-default">
+      {isTyping ? '' : <div className="flex flex-col px-4 py-0 mt-6 select-none cursor-default">
         <h1 className="text-gray-900 text-xl leading-tight m-0">
           Find delicious items from
         </h1>
@@ -410,7 +411,7 @@ const minusItems = useCallback((id, variant, isSimple) => {
         >
           {restaurant ? restaurant.name : 'Loading...'}
         </h2>
-      </div>
+      </div>}
 
       {/* Search Bar */}
 <div className="sticky top-0 z-10 p-4 bg-white">
