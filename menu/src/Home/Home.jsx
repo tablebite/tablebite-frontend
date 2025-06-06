@@ -50,9 +50,8 @@ function Home() {
   const [isModalVisible, setIsModalVisible] = useState(false);
 
   const [animationTrigger, setAnimationTrigger] = useState(null);
-  const [isSticky, setIsSticky] = useState(false);
- 
 
+  const [isSticky, setIsSticky] = useState(false);
   const searchInputRef = useRef(null);
 
   const [themeColor, setThemeColor] = useState(() => {
@@ -243,13 +242,13 @@ function Home() {
 }, [items]);
 
 
- // Detect scroll position and add sticky class when necessary
-  useEffect(() => {
+ useEffect(() => {
     const handleScroll = () => {
+      // Check if scrolled more than 50px
       if (window.scrollY > 50) {
-        setIsSticky(true);  // Add sticky effect after scrolling 50px
+        setIsSticky(true);  // Activate sticky when scrolled more than 50px
       } else {
-        setIsSticky(false); // Remove sticky effect when less than 50px scrolled
+        setIsSticky(false); // Deactivate sticky when less than 50px scrolled
       }
     };
 
@@ -417,7 +416,8 @@ const minusItems = useCallback((id, variant, isSimple) => {
       </div>
 
       {/* Search Bar */}
-     <div className={`sticky-top ${isSticky ? 'sticky' : ''}`}>
+     <div>
+      <div className={`sticky-top ${isSticky ? 'sticky' : ''}`}>
         <div className="relative w-full" ref={searchInputRef}>
           <input
             className="w-full bg-white text-gray-700 text-base placeholder-gray-500 px-5 py-3 rounded-full border border-gray-300 focus:outline-none shadow-sm transition duration-200 text-[16px]"
@@ -437,6 +437,7 @@ const minusItems = useCallback((id, variant, isSimple) => {
           </button>
         </div>
       </div>
+    </div>
 
 
       {/* Filter Bar */}
