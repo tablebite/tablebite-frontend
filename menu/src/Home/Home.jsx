@@ -50,6 +50,7 @@ function Home() {
   const [isModalVisible, setIsModalVisible] = useState(false);
 
   const [animationTrigger, setAnimationTrigger] = useState(null);
+const [mobileView, setMobileView] = useState(false);
 
 
   const searchInputRef = useRef(null);
@@ -345,6 +346,46 @@ const minusItems = useCallback((id, variant, isSimple) => {
     setMenuVisible(v => !v);
   };
 
+
+
+  useEffect(() => {
+  const handleResize = () => {
+    if (window.innerWidth <= 768) {
+      setMobileView(true);
+    } else {
+      setMobileView(false);
+    }
+  };
+  
+  // Initial check
+  handleResize();
+  
+  // Listen for resize changes
+  window.addEventListener('resize', handleResize);
+  
+  return () => window.removeEventListener('resize', handleResize);
+}, []);
+
+
+  useEffect(() => {
+  const handleKeyboardShow = () => {
+    document.body.style.paddingTop = '80px'; // Adjust based on your header height
+  };
+  const handleKeyboardHide = () => {
+    document.body.style.paddingTop = '0';
+  };
+
+  // Detect when the keyboard is opened
+  window.addEventListener('keyboardDidShow', handleKeyboardShow);
+  window.addEventListener('keyboardDidHide', handleKeyboardHide);
+
+  // Cleanup event listeners on component unmount
+  return () => {
+    window.removeEventListener('keyboardDidShow', handleKeyboardShow);
+    window.removeEventListener('keyboardDidHide', handleKeyboardHide);
+  };
+}, []);
+
   // BUTTON CLICK ANIMATION CLASS
   // Scale down effect on click or tap for Add/Minus buttons (slightly stronger scale)
   const buttonClickClass = "transition-transform duration-150 ease-in-out active:scale-90";
@@ -400,7 +441,7 @@ const minusItems = useCallback((id, variant, isSimple) => {
       </div>
 
       {/* Search Bar */}
-      <div className="sticky top-0 z-10 p-4 bg-white">
+      <div className={`sticky top-0 z-10 p-4 bg-white ${mobileView ? 'mobile' : ''}`}>
         <div className="relative w-full" ref={searchInputRef}>
           <input
             className="w-full bg-white text-gray-700 text-base placeholder-gray-500 px-5 py-3 rounded-full border border-gray-300 focus:outline-none shadow-sm transition duration-200 text-[16px]"
@@ -410,10 +451,10 @@ const minusItems = useCallback((id, variant, isSimple) => {
             placeholder="Search for dishes"
             onFocus={() => setInputFocused(true)}
             onBlur={() => setInputFocused(false)}
-            style={inputFocused ? { boxShadow: `0 0 0 2px ${themeColor}`, borderColor: themeColor } : {}}
+            style={inputFocused ? { boxShadow: `0 0 0 2px ${'#e4002b'}`, borderColor: '#e4002b' } : {}}
           />
           <button
-            className={`absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-green-600 transition duration-200`}
+            className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-green-600 transition duration-200"
             tabIndex={-1}
           >
             <Icon icon="ic:round-search" className="text-xl" />
