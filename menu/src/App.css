@@ -64,16 +64,6 @@ html, body, #root {
 .button-click-effect:active {
   transform: scale(0.95); /* Slight shrink on click */
 }
-/* Search Bar Styles */
-.sticky-search-bar {
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  background-color: white;
-  padding: 10px;
-  transition: top 0.3s ease;
-}
-
 
 
 /* Sticky search bar */
@@ -95,24 +85,22 @@ html, body, #root {
   z-index: 20;
 }
 
-/* Scrollable content area */
 .scrollable-content {
   overflow-y: auto;
   max-height: calc(100vh - 90px); /* Adjust this to match the height of your header + search bar */
-  padding-top: 10px; /* Optional: Adds padding between the search bar and the list */
-  /* Optional: Scrollbar styles (optional for custom styling) */
   scrollbar-width: thin;
   scrollbar-color: #888 #ddd;
 }
 
-/* Optional: Custom scrollbars */
 .scrollable-content::-webkit-scrollbar {
   width: 8px;
 }
+
 .scrollable-content::-webkit-scrollbar-thumb {
   background-color: #888;
   border-radius: 4px;
 }
+
 .scrollable-content::-webkit-scrollbar-track {
   background: #ddd;
 }

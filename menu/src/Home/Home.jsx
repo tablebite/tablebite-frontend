@@ -29,6 +29,9 @@ function Home() {
   const { restaurantId } = useParams();
   const location = useLocation();
 
+  const scrollRef = useRef(null);
+
+
   const [items, setItems] = useState([]);
   const [selectedType, setSelectedType] = useState('');
   const [loading, setLoading] = useState(true);
@@ -61,15 +64,24 @@ function Home() {
 
   const skipHighlightOnFocus = useRef(false);
 
+   useEffect(() => {
+    // This ensures the scrollable content is at the top on first load
+    window.scrollTo(0, 0);
+  }, []); // Empty dependency array ensures it runs only on the first render
+
+
   const debouncedSearch = useDebounce(searchTerm, 200);
 
   const getHeaders = useCallback(() => ({
     'Authorization': 'Basic ' + btoa(`admin:admin123`)
   }), []);
 
-  useLayoutEffect(() => {
-    window.scrollTo(0, 0);
-  }, [location.pathname]);
+useLayoutEffect(() => {
+  if (scrollRef.current) {
+    scrollRef.current.scrollTop = 0;  // Scroll to the top of the scrollable container
+  }
+}, [location.pathname]);  // This will run every time the location changes
+
 
   useEffect(() => {
     if (menuVisible) {
@@ -93,6 +105,16 @@ function Home() {
     return () => clearTimeout(timer);
   }
 }, [animationTrigger]);
+
+useEffect(() => {
+  if (scrollRef.current) {
+    // This will ensure that the scroll position is set to top after the page load
+    requestAnimationFrame(() => {
+      scrollRef.current.scrollTop = 0; // Scroll to the top of the container
+    });
+  }
+}, []); // Empty dependency array ensures this runs only once after the initial render
+
 
 
   useEffect(() => {
@@ -414,73 +436,72 @@ useEffect(() => {
   }
 
   return (
-        <div className="bg-white min-h-screen w-full font-sans text-gray-800 relative flex flex-col">
+       <div className="bg-white min-h-screen w-full font-sans text-gray-800 relative flex flex-col">
+  {/* Scrollable Content Area */}
+  <div className="scrollable-content" ref={scrollRef}>
+    {!isTyping && (
+      <div className="flex flex-col px-4 py-0 mt-6 select-none cursor-default">
+        <h1 className="text-gray-900 text-xl leading-tight m-0">
+          Find delicious items from
+        </h1>
+        <h2 className="font-bold text-2xl mt-1 m-0" style={{ color: themeColor }}>
+          {restaurant ? restaurant.name : 'Loading...'}
+        </h2>
+      </div>
+    )}
 
-      {/* Header */}
-      {!isTyping && (
-        <div className="flex flex-col px-4 py-0 mt-6 select-none cursor-default">
-          <h1 className="text-gray-900 text-xl leading-tight m-0">
-            Find delicious items from
-          </h1>
-          <h2 className="font-bold text-2xl mt-1 m-0" style={{ color: themeColor }}>
-            {restaurant ? restaurant.name : 'Loading...'}
-          </h2>
-        </div>
-      )}
+    {/* Search Bar */}
+    <div className={`sticky-search-bar ${isTyping ? 'fixed-search-bar' : ''}`}>
+      <div className="relative w-full" ref={searchInputRef}>
+        <input
+          className="w-full bg-white text-gray-700 text-base placeholder-gray-500 px-5 py-3 rounded-full border border-gray-300 focus:outline-none shadow-sm transition duration-200 text-[16px]"
+          type="text"
+          value={searchTerm}
+          onChange={handleSearchChange}
+          placeholder="Search for dishes"
+          onFocus={() => setIsTyping(true)}  // Trigger typing state when focused
+          onBlur={() => setIsTyping(false)}  // Reset typing state when not focused
+          style={isTyping ? { boxShadow: `0 0 0 2px ${themeColor}`, borderColor: themeColor } : {}}
+        />
+        <button
+          className={`absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-green-600 transition duration-200`}
+          tabIndex={-1}
+        >
+          <Icon icon="ic:round-search" className="text-xl" />
+        </button>
+      </div>
+    </div>
 
-      {/* Search Bar */}
-      <div className={`sticky-search-bar ${isTyping ? 'fixed-search-bar' : ''}`}>
-        <div className="relative w-full" ref={searchInputRef}>
+    {/* Filter Bar */}
+    <div className="p-3 border-b border-gray-200 flex items-center gap-4">
+      <div className="flex items-center gap-2 select-none cursor-default">
+        <label className="relative inline-block w-11 h-6 cursor-pointer">
           <input
-            className="w-full bg-white text-gray-700 text-base placeholder-gray-500 px-5 py-3 rounded-full border border-gray-300 focus:outline-none shadow-sm transition duration-200 text-[16px]"
-            type="text"
-            value={searchTerm}
-            onChange={handleSearchChange}
-            placeholder="Search for dishes"
-            onFocus={() => setIsTyping(true)}  // Trigger the typing state when focused
-            onBlur={() => setIsTyping(false)}  // Reset typing state when not focused
-            style={isTyping ? { boxShadow: `0 0 0 2px ${themeColor}`, borderColor: themeColor } : {}}
+            type="checkbox"
+            checked={selectedType === 'Non-Veg'}
+            onChange={() => handleTypeChange('Non-Veg')}
+            className="opacity-0 w-0 h-0 peer"
           />
-          <button
-            className={`absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-green-600 transition duration-200`}
-            tabIndex={-1}
-          >
-            <Icon icon="ic:round-search" className="text-xl" />
-          </button>
-        </div>
+          <span className="absolute cursor-pointer top-0 left-0 right-0 bottom-0 bg-gray-200 rounded-full peer-checked:bg-red-600 transition"></span>
+          <span className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full peer-checked:translate-x-5 transition"></span>
+        </label>
+        <span className="text-sm text-gray-700 font-medium">Non-Veg</span>
       </div>
 
-      
-{/* Filter Bar */}
-      <div className="p-3 border-b border-gray-200 flex items-center gap-4">
-  <div className="flex items-center gap-2 select-none cursor-default">
-    <label className="relative inline-block w-11 h-6 cursor-pointer">
-      <input
-        type="checkbox"
-        checked={selectedType === 'Non-Veg'}
-        onChange={() => handleTypeChange('Non-Veg')}
-        className="opacity-0 w-0 h-0 peer"
-      />
-      <span className="absolute cursor-pointer top-0 left-0 right-0 bottom-0 bg-gray-200 rounded-full peer-checked:bg-red-600 transition"></span>
-      <span className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full peer-checked:translate-x-5 transition"></span>
-    </label>
-    <span className="text-sm text-gray-700 font-medium">Non-Veg</span>
-  </div>
-
-  <div className="flex items-center gap-2 select-none cursor-default">
-    <label className="relative inline-block w-11 h-6 cursor-pointer">
-      <input
-        type="checkbox"
-        checked={selectedType === 'Veg'}
-        onChange={() => handleTypeChange('Veg')}
-        className="opacity-0 w-0 h-0 peer"
-      />
-      <span className="absolute cursor-pointer top-0 left-0 right-0 bottom-0 bg-gray-200 rounded-full peer-checked:bg-green-600 transition"></span>
-      <span className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full peer-checked:translate-x-5 transition"></span>
-    </label>
-    <span className="text-sm text-gray-700 font-medium">Veg</span>
-  </div>
-</div>
+      <div className="flex items-center gap-2 select-none cursor-default">
+        <label className="relative inline-block w-11 h-6 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={selectedType === 'Veg'}
+            onChange={() => handleTypeChange('Veg')}
+            className="opacity-0 w-0 h-0 peer"
+          />
+          <span className="absolute cursor-pointer top-0 left-0 right-0 bottom-0 bg-gray-200 rounded-full peer-checked:bg-green-600 transition"></span>
+          <span className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full peer-checked:translate-x-5 transition"></span>
+        </label>
+        <span className="text-sm text-gray-700 font-medium">Veg</span>
+      </div>
+    </div>
 
       {/* Category Accordion */}
       <div className="mt-4">
@@ -866,6 +887,8 @@ useEffect(() => {
           </div>
         </>
       )}
+
+      </div> 
 
       {/* Footer naturally at bottom */}
       <div className="px-4 py-4 bg-gray-100 text-center text-gray-600 text-sm select-none rounded-t-lg border-t border-gray-300 mt-auto">
