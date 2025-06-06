@@ -66,3 +66,38 @@ html, body, #root {
 }
 
 
+/* Default sticky behavior */
+.search-bar-sticky {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  padding: 16px;
+  background-color: white;
+  box-shadow: none;
+  transition: top 0.3s ease, transform 0.3s ease;
+}
+
+/* When the search bar is fixed due to the keyboard */
+.search-bar-fixed {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  padding: 16px;
+  background-color: white;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  transform: translateY(0);
+}
+
+/* When the page is scrolled */
+.is-sticky {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  padding: 16px;
+  background-color: white;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
