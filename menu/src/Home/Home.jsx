@@ -414,43 +414,43 @@ useEffect(() => {
   }
 
   return (
-    <div className="bg-white min-h-screen w-full font-sans text-gray-800 relative flex flex-col">
+        <div className="bg-white min-h-screen w-full font-sans text-gray-800 relative flex flex-col">
 
       {/* Header */}
-      {isTyping ? '' : <div className="flex flex-col px-4 py-0 mt-6 select-none cursor-default">
-        <h1 className="text-gray-900 text-xl leading-tight m-0">
-          Find delicious items from
-        </h1>
-        <h2
-          className="font-bold text-2xl mt-1 m-0"
-          style={{ color: themeColor }}
-        >
-          {restaurant ? restaurant.name : 'Loading...'}
-        </h2>
-      </div>}
+      {!isTyping && (
+        <div className="flex flex-col px-4 py-0 mt-6 select-none cursor-default">
+          <h1 className="text-gray-900 text-xl leading-tight m-0">
+            Find delicious items from
+          </h1>
+          <h2 className="font-bold text-2xl mt-1 m-0" style={{ color: themeColor }}>
+            {restaurant ? restaurant.name : 'Loading...'}
+          </h2>
+        </div>
+      )}
 
       {/* Search Bar */}
-<div className="sticky top-0 z-10 p-4 bg-white">
-  <div className="relative w-full" ref={searchInputRef}>
-    <input
-      className="w-full bg-white text-gray-700 text-base placeholder-gray-500 px-5 py-3 rounded-full border border-gray-300 focus:outline-none shadow-sm transition duration-200 text-[16px]"
-      type="text"
-      value={searchTerm}
-      onChange={handleSearchChange}
-      placeholder="Search for dishes"
-      onFocus={() => setInputFocused(true)}
-      onBlur={() => setInputFocused(false)}
-      style={inputFocused ? { boxShadow: `0 0 0 2px ${themeColor}`, borderColor: themeColor } : {}}
-    />
-    <button
-      className={`absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-green-600 transition duration-200`}
-      tabIndex={-1}
-    >
-      <Icon icon="ic:round-search" className="text-xl" />
-    </button>
-  </div>
-</div>
+      <div className={`sticky-search-bar ${isTyping ? 'fixed-search-bar' : ''}`}>
+        <div className="relative w-full" ref={searchInputRef}>
+          <input
+            className="w-full bg-white text-gray-700 text-base placeholder-gray-500 px-5 py-3 rounded-full border border-gray-300 focus:outline-none shadow-sm transition duration-200 text-[16px]"
+            type="text"
+            value={searchTerm}
+            onChange={handleSearchChange}
+            placeholder="Search for dishes"
+            onFocus={() => setIsTyping(true)}  // Trigger the typing state when focused
+            onBlur={() => setIsTyping(false)}  // Reset typing state when not focused
+            style={isTyping ? { boxShadow: `0 0 0 2px ${themeColor}`, borderColor: themeColor } : {}}
+          />
+          <button
+            className={`absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-green-600 transition duration-200`}
+            tabIndex={-1}
+          >
+            <Icon icon="ic:round-search" className="text-xl" />
+          </button>
+        </div>
+      </div>
 
+      
 {/* Filter Bar */}
       <div className="p-3 border-b border-gray-200 flex items-center gap-4">
   <div className="flex items-center gap-2 select-none cursor-default">
