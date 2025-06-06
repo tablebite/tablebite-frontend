@@ -6,7 +6,7 @@ import React, {
   useMemo,
   useCallback
 } from 'react';
-import { Icon } from '@iconify/react/dist/iconify.js';
+import { Icon } from '@iconify/react';
 import { useParams, useLocation } from 'react-router-dom';
 import {
   getMenuListByRestaurantIdAndRestaurantName,
@@ -50,7 +50,8 @@ function Home() {
   const [isModalVisible, setIsModalVisible] = useState(false);
 
   const [animationTrigger, setAnimationTrigger] = useState(null);
-
+  const [isSticky, setIsSticky] = useState(false);
+ 
 
   const searchInputRef = useRef(null);
 
@@ -92,7 +93,6 @@ function Home() {
     return () => clearTimeout(timer);
   }
 }, [animationTrigger]);
-
 
   useEffect(() => {
     let isMounted = true;
@@ -243,8 +243,26 @@ function Home() {
 }, [items]);
 
 
+ // Detect scroll position and add sticky class when necessary
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 50) {
+        setIsSticky(true);  // Add sticky effect after scrolling 50px
+      } else {
+        setIsSticky(false); // Remove sticky effect when less than 50px scrolled
+      }
+    };
 
-  const updateToCart = useCallback((id, variant) =>
+    // Add event listener for scroll
+    window.addEventListener('scroll', handleScroll);
+
+    // Cleanup event listener when component is unmounted
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
+ const updateToCart = useCallback((id, variant) =>
     updateCartCount(id, variant, 1),
     [updateCartCount]);
 
@@ -307,7 +325,7 @@ const minusItems = useCallback((id, variant, isSimple) => {
         ? prev.filter(eid => eid !== id)
         : [...prev, id]
     );
-  }, []);
+  }, []);  
 
   const handleRemoveCartItem = useCallback((index) => {
     setCartItems(prev => {
@@ -315,7 +333,7 @@ const minusItems = useCallback((id, variant, isSimple) => {
       updated.splice(index, 1);
       return updated;
     });
-  }, []);
+  }, []);  
 
   const toggleCategory = (category) => {
     setExpandedCategories(prev => {
@@ -346,7 +364,6 @@ const minusItems = useCallback((id, variant, isSimple) => {
   };
 
   // BUTTON CLICK ANIMATION CLASS
-  // Scale down effect on click or tap for Add/Minus buttons (slightly stronger scale)
   const buttonClickClass = "transition-transform duration-150 ease-in-out active:scale-90";
 
   const SkeletonLoader = () => (
@@ -400,7 +417,7 @@ const minusItems = useCallback((id, variant, isSimple) => {
       </div>
 
       {/* Search Bar */}
-      <div className="sticky top-0 z-10 p-4 bg-white">
+     <div className={`sticky-top ${isSticky ? 'sticky' : ''}`}>
         <div className="relative w-full" ref={searchInputRef}>
           <input
             className="w-full bg-white text-gray-700 text-base placeholder-gray-500 px-5 py-3 rounded-full border border-gray-300 focus:outline-none shadow-sm transition duration-200 text-[16px]"
@@ -421,9 +438,10 @@ const minusItems = useCallback((id, variant, isSimple) => {
         </div>
       </div>
 
+
       {/* Filter Bar */}
       <div className="p-3 border-b border-gray-200 flex items-center gap-4">
-        <div className="flex items-center gap-2 select-none cursor-default">
+        <div className="flex items-center gap-2 select-none cursor-pointer">
           <label className="relative inline-block w-11 h-6 cursor-pointer">
             <input
               type="checkbox"
@@ -437,7 +455,7 @@ const minusItems = useCallback((id, variant, isSimple) => {
           <span className="text-sm text-gray-700 font-medium">Non-Veg</span>
         </div>
 
-        <div className="flex items-center gap-2 select-none cursor-default">
+        <div className="flex items-center gap-2 select-none cursor-pointer">
           <label className="relative inline-block w-11 h-6 cursor-pointer">
             <input
               type="checkbox"
@@ -616,7 +634,7 @@ const minusItems = useCallback((id, variant, isSimple) => {
                                   e.stopPropagation();
                                   updateToCart(item.id, firstVariant);
                                 }}
-                                className={`absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-[35%] font-medium text-base rounded-full shadow-md ${buttonClickClass}`}
+                                className={`absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-[35%] font-medium text-base rounded-full shadow-lg ${buttonClickClass}`}
                                 style={{
 
                                   backgroundColor: '#FFFFFF',
@@ -816,8 +834,6 @@ const minusItems = useCallback((id, variant, isSimple) => {
                 >
                   <Icon icon="ic:baseline-minus" />
                 </button>
-             
-
                                               <span
   className={`font-bold text-base ${animationTrigger && animationTrigger.id === selectedItem.id ? 'quantity-animate' : ''}`}
   style={{ color: themeColor, minWidth: '24px', textAlign: 'center' }}
@@ -856,25 +872,25 @@ const minusItems = useCallback((id, variant, isSimple) => {
       </div>
 
       <AddCart
-  isModalVisible={isModalVisible} // Pass state
-  setIsModalVisible={setIsModalVisible} // Pass setter
-  themeColor={themeColor}
-  cartCount={cartItems.length}
-  cartItems={cartItems}
-  onSearchIconClick={() => {
-    if (searchInputRef.current) {
-      searchInputRef.current.scrollIntoView({ behavior: 'smooth' });
-      searchInputRef.current.focus();
-    }
-  }}
-  onRemoveItem={(index) => {
-    setCartItems(prev => {
-      const updated = [...prev];
-      updated.splice(index, 1);
-      return updated;
-    });
-  }}
-/>
+        isModalVisible={isModalVisible} // Pass state
+        setIsModalVisible={setIsModalVisible} // Pass setter
+        themeColor={themeColor}
+        cartCount={cartItems.length}
+        cartItems={cartItems}
+        onSearchIconClick={() => {
+          if (searchInputRef.current) {
+            searchInputRef.current.scrollIntoView({ behavior: 'smooth' });
+            searchInputRef.current.focus();
+          }
+        }}
+        onRemoveItem={(index) => {
+          setCartItems(prev => {
+            const updated = [...prev];
+            updated.splice(index, 1);
+            return updated;
+          });
+        }}
+      />
 
       <div
         onClick={handleMenuToggle}
@@ -895,7 +911,6 @@ const minusItems = useCallback((id, variant, isSimple) => {
           userSelect: 'none',
           cursor: 'pointer',
           zIndex: modalVisible ? 10 : 50,
-          userSelect: 'none',
         }}
       >
         MENU
@@ -943,11 +958,7 @@ const minusItems = useCallback((id, variant, isSimple) => {
                     }
                   }, 200);
                 }}
-                className={`w-full flex justify-between items-center px-5 py-4 ${
-                  isSelected
-                    ? 'text-white font-semibold'
-                    : 'text-gray-300'
-                } ${buttonClickClass}`}  // Removed hover styles
+                className={`w-full flex justify-between items-center px-5 py-4 ${isSelected ? 'text-white font-semibold' : 'text-gray-300'} ${buttonClickClass}`}  // Removed hover styles
                 style={{
                   cursor: 'pointer',
                   userSelect: 'none',
@@ -969,8 +980,6 @@ const minusItems = useCallback((id, variant, isSimple) => {
     </div>
   </>
 )}
-
-
 
     </div>
   );
