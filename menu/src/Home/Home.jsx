@@ -141,6 +141,15 @@ function Home() {
     return () => { isMounted = false; };
   }, [restaurantId, getHeaders]);
 
+
+  useLayoutEffect(() => {
+  if (isTyping) {
+    // Force scroll to top when typing starts
+    window.scrollTo(0, 0);
+  }
+}, [isTyping]); // This will trigger when isTyping state changes
+
+
   useEffect(() => {
     if (categories.length > 0) {
       setExpandedCategories([categories[0]]);
@@ -302,10 +311,17 @@ const minusItems = useCallback((id, variant, isSimple) => {
   }, []);
   
   
- const handleSearchChange = (e) => {
-    setSearchTerm(e.target.value);
-    setIsTyping(e.target.value.trim().length > 0);  // Set isTyping when user starts typing
-  };
+const handleSearchChange = (e) => {
+  setSearchTerm(e.target.value);
+  setIsTyping(e.target.value.trim().length > 0);  // Set isTyping when user starts typing
+};
+
+useEffect(() => {
+  if (searchTerm.trim() === '') {
+    setIsTyping(false);  // Reset isTyping when the search term is cleared
+  }
+}, [searchTerm]);
+
 
   
     useEffect(() => {
