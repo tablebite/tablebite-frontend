@@ -65,25 +65,4 @@ html, body, #root {
   transform: scale(0.95); /* Slight shrink on click */
 }
 
-/* Normal state for the search bar */
-.sticky-top {
-  position: relative;
-  z-index: 10;
-  padding: 16px;
-  background-color: white;
-  transition: top 0.3s ease, transform 0.3s ease; /* Smooth transition for top and transform */
-  box-shadow: none; /* No shadow in normal state */
-}
-
-/* When the search bar becomes sticky and fixed */
-.sticky-top.sticky {
-  position: fixed;
-  top: 0; /* Stay at the top when fixed */
-  left: 0;
-  right: 0;
-  z-index: 10;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Shadow effect when sticky */
-  transform: translateY(0); /* Ensures smooth positioning */
-}
-
 
