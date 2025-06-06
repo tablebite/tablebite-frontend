@@ -66,23 +66,3 @@ html, body, #root {
 }
 
 
-/* Default sticky search box styling */
-.sticky-search-box {
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-  background-color: white;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
-
-/* Mobile-specific styles */
-.sticky-search-box.mobile {
-  margin-bottom: 56px; /* Add space at the bottom to avoid overlap with keyboard */
-}
-
-/* Mobile input field adjustments */
-@media (max-width: 768px) {
-  .sticky-search-box input {
-    padding-left: 45px; /* Increase padding to avoid icon collision */
-  }
-}

@@ -22,7 +22,7 @@ function useDebounce(value, delay) {
     const handler = setTimeout(() => setDebounced(value), delay);
     return () => clearTimeout(handler);
   }, [value, delay]);
-  return debounced;
+  return debounced; 
 }
 
 function Home() {
@@ -50,7 +50,7 @@ function Home() {
   const [isModalVisible, setIsModalVisible] = useState(false);
 
   const [animationTrigger, setAnimationTrigger] = useState(null);
-const [mobileView, setMobileView] = useState(false);
+   const [isTyping, setIsTyping] = useState(false);  // To track if the user is typing in the search box
 
 
   const searchInputRef = useRef(null);
@@ -300,7 +300,19 @@ const minusItems = useCallback((id, variant, isSimple) => {
   const handleTypeChange = useCallback((type) => {
     setSelectedType(t => t === type ? '' : type);
   }, []);
-  const handleSearchChange = (e) => setSearchTerm(e.target.value);
+  
+  
+    const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+    setIsTyping(e.target.value.trim().length > 0);  // Set isTyping to true when user starts typing
+  };
+
+    useEffect(() => {
+    if (searchTerm.trim() === '') {
+      setIsTyping(false);  // Reset isTyping when the search term is cleared
+    }
+  }, [searchTerm]);
+
 
   const toggleExpand = useCallback((id) => {
     setExpandedItems(prev =>
@@ -345,46 +357,6 @@ const minusItems = useCallback((id, variant, isSimple) => {
   const handleMenuToggle = () => {
     setMenuVisible(v => !v);
   };
-
-
-
-  useEffect(() => {
-  const handleResize = () => {
-    if (window.innerWidth <= 768) {
-      setMobileView(true);
-    } else {
-      setMobileView(false);
-    }
-  };
-  
-  // Initial check
-  handleResize();
-  
-  // Listen for resize changes
-  window.addEventListener('resize', handleResize);
-  
-  return () => window.removeEventListener('resize', handleResize);
-}, []);
-
-
-  useEffect(() => {
-  const handleKeyboardShow = () => {
-    document.body.style.paddingTop = '80px'; // Adjust based on your header height
-  };
-  const handleKeyboardHide = () => {
-    document.body.style.paddingTop = '0';
-  };
-
-  // Detect when the keyboard is opened
-  window.addEventListener('keyboardDidShow', handleKeyboardShow);
-  window.addEventListener('keyboardDidHide', handleKeyboardHide);
-
-  // Cleanup event listeners on component unmount
-  return () => {
-    window.removeEventListener('keyboardDidShow', handleKeyboardShow);
-    window.removeEventListener('keyboardDidHide', handleKeyboardHide);
-  };
-}, []);
 
   // BUTTON CLICK ANIMATION CLASS
   // Scale down effect on click or tap for Add/Minus buttons (slightly stronger scale)
@@ -441,57 +413,57 @@ const minusItems = useCallback((id, variant, isSimple) => {
       </div>
 
       {/* Search Bar */}
-      <div className={`sticky top-0 z-10 p-4 bg-white ${mobileView ? 'mobile' : ''}`}>
-        <div className="relative w-full" ref={searchInputRef}>
-          <input
-            className="w-full bg-white text-gray-700 text-base placeholder-gray-500 px-5 py-3 rounded-full border border-gray-300 focus:outline-none shadow-sm transition duration-200 text-[16px]"
-            type="text"
-            value={searchTerm}
-            onChange={handleSearchChange}
-            placeholder="Search for dishes"
-            onFocus={() => setInputFocused(true)}
-            onBlur={() => setInputFocused(false)}
-            style={inputFocused ? { boxShadow: `0 0 0 2px ${'#e4002b'}`, borderColor: '#e4002b' } : {}}
-          />
-          <button
-            className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-green-600 transition duration-200"
-            tabIndex={-1}
-          >
-            <Icon icon="ic:round-search" className="text-xl" />
-          </button>
-        </div>
-      </div>
+<div className="sticky top-0 z-10 p-4 bg-white">
+  <div className="relative w-full" ref={searchInputRef}>
+    <input
+      className="w-full bg-white text-gray-700 text-base placeholder-gray-500 px-5 py-3 rounded-full border border-gray-300 focus:outline-none shadow-sm transition duration-200 text-[16px]"
+      type="text"
+      value={searchTerm}
+      onChange={handleSearchChange}
+      placeholder="Search for dishes"
+      onFocus={() => setInputFocused(true)}
+      onBlur={() => setInputFocused(false)}
+      style={inputFocused ? { boxShadow: `0 0 0 2px ${themeColor}`, borderColor: themeColor } : {}}
+    />
+    <button
+      className={`absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-green-600 transition duration-200`}
+      tabIndex={-1}
+    >
+      <Icon icon="ic:round-search" className="text-xl" />
+    </button>
+  </div>
+</div>
 
-      {/* Filter Bar */}
+{/* Filter Bar */}
       <div className="p-3 border-b border-gray-200 flex items-center gap-4">
-        <div className="flex items-center gap-2 select-none cursor-default">
-          <label className="relative inline-block w-11 h-6 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={selectedType === 'Non-Veg'}
-              onChange={() => handleTypeChange('Non-Veg')}
-              className="opacity-0 w-0 h-0 peer"
-            />
-            <span className="absolute cursor-pointer top-0 left-0 right-0 bottom-0 bg-gray-200 rounded-full peer-checked:bg-red-600 transition"></span>
-            <span className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full peer-checked:translate-x-5 transition"></span>
-          </label>
-          <span className="text-sm text-gray-700 font-medium">Non-Veg</span>
-        </div>
+  <div className="flex items-center gap-2 select-none cursor-default">
+    <label className="relative inline-block w-11 h-6 cursor-pointer">
+      <input
+        type="checkbox"
+        checked={selectedType === 'Non-Veg'}
+        onChange={() => handleTypeChange('Non-Veg')}
+        className="opacity-0 w-0 h-0 peer"
+      />
+      <span className="absolute cursor-pointer top-0 left-0 right-0 bottom-0 bg-gray-200 rounded-full peer-checked:bg-red-600 transition"></span>
+      <span className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full peer-checked:translate-x-5 transition"></span>
+    </label>
+    <span className="text-sm text-gray-700 font-medium">Non-Veg</span>
+  </div>
 
-        <div className="flex items-center gap-2 select-none cursor-default">
-          <label className="relative inline-block w-11 h-6 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={selectedType === 'Veg'}
-              onChange={() => handleTypeChange('Veg')}
-              className="opacity-0 w-0 h-0 peer"
-            />
-            <span className="absolute cursor-pointer top-0 left-0 right-0 bottom-0 bg-gray-200 rounded-full peer-checked:bg-green-600 transition"></span>
-            <span className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full peer-checked:translate-x-5 transition"></span>
-          </label>
-          <span className="text-sm text-gray-700 font-medium">Veg</span>
-        </div>
-      </div>
+  <div className="flex items-center gap-2 select-none cursor-default">
+    <label className="relative inline-block w-11 h-6 cursor-pointer">
+      <input
+        type="checkbox"
+        checked={selectedType === 'Veg'}
+        onChange={() => handleTypeChange('Veg')}
+        className="opacity-0 w-0 h-0 peer"
+      />
+      <span className="absolute cursor-pointer top-0 left-0 right-0 bottom-0 bg-gray-200 rounded-full peer-checked:bg-green-600 transition"></span>
+      <span className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full peer-checked:translate-x-5 transition"></span>
+    </label>
+    <span className="text-sm text-gray-700 font-medium">Veg</span>
+  </div>
+</div>
 
       {/* Category Accordion */}
       <div className="mt-4">
