@@ -6,7 +6,7 @@ import React, {
   useMemo,
   useCallback
 } from 'react';
-import { Icon } from '@iconify/react/dist/iconify.js';
+import { Icon } from '@iconify/react';
 import { useParams, useLocation } from 'react-router-dom';
 import {
   getMenuListByRestaurantIdAndRestaurantName,
@@ -445,10 +445,7 @@ useEffect(() => {
     )}
 
     {/* Search Bar */}
-   <div
-  className={`sticky-search-bar ${isTyping ? 'focused' : ''}`}
-  onClick={() => searchInputRef.current?.focus()}
->
+   <div className={`sticky-search-bar ${isTyping ? 'focused' : ''}`}>
   <div className="relative w-full">
     <input
       ref={searchInputRef}
@@ -459,33 +456,43 @@ useEffect(() => {
       onFocus={() => setIsTyping(true)}
       onBlur={() => setIsTyping(false)}
       className={`
-        w-full
-        bg-white text-gray-700 placeholder-gray-500
-        px-5 py-3
-        pr-12           /* ← add extra padding on the right */
-        rounded-full
-        border border-gray-300
-        focus:outline-none
-        transition duration-200
+        w-full bg-white text-gray-700 placeholder-gray-500
+        px-5 py-3 pr-12 rounded-full border border-gray-300
+        focus:outline-none transition duration-200
       `}
-      style={isTyping
-        ? { boxShadow: `0 0 0 2px ${themeColor}`, borderColor: themeColor }
-        : {}
+      style={
+        isTyping
+          ? { boxShadow: `0 0 0 2px ${themeColor}`, borderColor: themeColor }
+          : {}
       }
     />
 
+    {/* put this inside the same relative wrapper as your input */}
+<div className="absolute inset-y-0 right-0 flex items-center pr-4">
+  {searchTerm ? (
+    <button
+      type="button"
+      onMouseDown={e => e.preventDefault()}
+      onClick={e => {
+        e.stopPropagation();
+        setSearchTerm('');
+        setIsTyping(false);
+        searchInputRef.current?.blur();
+      }}
+      className="flex items-center justify-center w-8 h-8 focus:outline-none"
+    >
+      <Icon icon="ic:baseline-close" width="20" height="20" />
+    </button>
+  ) : (
     <Icon
-      icon="ic:round-search"
-      className="
-        absolute
-        right-4          /* ← distance from right edge */
-        top-1/2
-        transform -translate-y-1/2
-        text-gray-500
-        pointer-events-none
-      "
+      icon="ic:baseline-search"
+      width="20"
+      height="20"
+      className="text-gray-500 pointer-events-none"
     />
-  </div>
+  )}
+</div>
+</div>
 </div>
 
 
