@@ -62,12 +62,6 @@ function Home() {
     return localStorage.getItem('themeColor') || "#e4002b";
   });
 
-  const skipHighlightOnFocus = useRef(false);
-
-   useEffect(() => {
-    // This ensures the ccontent is at the top on first load
-    window.scrollTo(0, 0);
-  }, []); // Empty dependency array ensures it runs only on the first render
 
 
   const debouncedSearch = useDebounce(searchTerm, 200);
@@ -451,26 +445,49 @@ useEffect(() => {
     )}
 
     {/* Search Bar */}
-    <div className={`sticky-search-bar ${isTyping ? 'fixed-search-bar' : ''}`}>
-      <div className="relative w-full" ref={searchInputRef}>
-        <input
-          className="w-full bg-white text-gray-700 text-base placeholder-gray-500 px-5 py-3 rounded-full border border-gray-300 focus:outline-none shadow-sm transition duration-200 text-[16px]"
-          type="text"
-          value={searchTerm}
-          onChange={handleSearchChange}
-          placeholder="Search for dishes"
-          onFocus={() => setIsTyping(true)}  // Trigger typing state when focused
-          onBlur={() => setIsTyping(false)}  // Reset typing state when not focused
-          style={isTyping ? { boxShadow: `0 0 0 2px ${themeColor}`, borderColor: themeColor } : {}}
-        />
-        <button
-          className={`absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-green-600 transition duration-200`}
-          tabIndex={-1}
-        >
-          <Icon icon="ic:round-search" className="text-xl" />
-        </button>
-      </div>
-    </div>
+   <div
+  className={`sticky-search-bar ${isTyping ? 'focused' : ''}`}
+  onClick={() => searchInputRef.current?.focus()}
+>
+  <div className="relative w-full">
+    <input
+      ref={searchInputRef}
+      type="text"
+      value={searchTerm}
+      onChange={handleSearchChange}
+      placeholder="Search for dishes"
+      onFocus={() => setIsTyping(true)}
+      onBlur={() => setIsTyping(false)}
+      className={`
+        w-full
+        bg-white text-gray-700 placeholder-gray-500
+        px-5 py-3
+        pr-12           /* ← add extra padding on the right */
+        rounded-full
+        border border-gray-300
+        focus:outline-none
+        transition duration-200
+      `}
+      style={isTyping
+        ? { boxShadow: `0 0 0 2px ${themeColor}`, borderColor: themeColor }
+        : {}
+      }
+    />
+
+    <Icon
+      icon="ic:round-search"
+      className="
+        absolute
+        right-4          /* ← distance from right edge */
+        top-1/2
+        transform -translate-y-1/2
+        text-gray-500
+        pointer-events-none
+      "
+    />
+  </div>
+</div>
+
 
     {/* Filter Bar */}
     <div className="p-3 border-b border-gray-200 flex items-center gap-4">

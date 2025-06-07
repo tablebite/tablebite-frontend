@@ -65,17 +65,21 @@ html, body, #root {
   transform: scale(0.95); /* Slight shrink on click */
 }
 
-
-/* Sticky search bar */
 .sticky-search-bar {
   position: sticky;
   top: 0;
-  z-index: 10;
-  background-color: white;
-  padding: 10px;
-  transition: top 0.3s ease;
+  z-index: 20;
+  background: white;             /* match your bg */
+  display: flex;
+  align-items: center;
+  padding: 1rem 1rem .7rem 1rem;       /* adjust to taste */
+  border-bottom: 1px solid #e5e7eb; /* optional separator */
 }
 
+.sticky-search-bar.focused {
+  /* you can add a shadow or border-color change here on focus */
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
 /* Fix the search bar when typing */
 .fixed-search-bar {
   position: fixed;
