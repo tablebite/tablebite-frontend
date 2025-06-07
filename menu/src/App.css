@@ -1,112 +1,72 @@
-.fade-top-gradient {
-  position: relative;
-}
+/* src/App.css */
 
-.fade-top-gradient::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 40px;
-  pointer-events: none;
-  background: linear-gradient(to bottom, white, transparent);
-  z-index: 10;
-}
-
-/* Ensure app fills full viewport */
-html, body, #root {
-  margin: 0;
-  padding: 0;
-  height: 100%;
-}
-
-/* Simulated status bar background */
-.status-bar-background {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 44px; /* iOS status bar height */
-  background-color: transparent; /* Yahoo purple */
-  z-index: 9999;
-}
-
-
-
-/* Animation for swipe-up effect on quantity change */
-.quantity-animate {
-  animation: swipeUp 0.3s ease-in-out;
-}
-
-@keyframes swipeUp {
-  0% {
-    transform: translateY(15%); /* Further reduced starting position */
-    opacity: 0;
-  }
-  50% {
-    transform: translateY(-3px); /* Reduced upward movement */
-    opacity: 1;
-  }
-  100% {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-
-/* Optimized button click effect */
-.button-click-effect {
-  transition: transform 0.2s ease-in-out; /* Longer transition for a smoother effect */
-  transform-origin: center; /* Ensures the scale is centered */
-}
-
-.button-click-effect:active {
-  transform: scale(0.95); /* Slight shrink on click */
-}
-
-.sticky-search-bar {
-  position: sticky;
-  top: 0;
-  z-index: 20;
-  background: white;             /* match your bg */
-  display: flex;
-  align-items: center;
-  padding: 1rem 1rem .7rem 1rem;       /* adjust to taste */
-}
-
-.sticky-search-bar.focused {
-  /* you can add a shadow or border-color change here on focus */
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-/* Fix the search bar when typing */
-.fixed-search-bar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 20;
-}
-
-/* App.css */
+/* 1. Scrollable content */
 .scrollable-content {
   display: flex;
   flex-direction: column;
   flex: 1;
   overflow-y: auto;
-  /* if you had any bottom padding here, remove it: */
-  padding-bottom: 0;
+  -webkit-overflow-scrolling: touch;
 }
-
 .scrollable-content::-webkit-scrollbar {
   width: 8px;
 }
-
 .scrollable-content::-webkit-scrollbar-thumb {
   background-color: #888;
   border-radius: 4px;
 }
-
 .scrollable-content::-webkit-scrollbar-track {
   background: #ddd;
+}
+
+/* 2. Sticky search bar */
+.sticky-search-bar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: white;
+  padding: .7rem;
+  transition: box-shadow 0.2s ease;
+}
+.sticky-search-bar.focused {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+/* 3. Quantity pop animation */
+.quantity-animate {
+  display: inline-block;
+  animation: pop 0.2s ease-in-out;
+}
+@keyframes pop {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+
+/* 4. Button click effect */
+.button-click-effect {
+  transition: transform 0.2s ease-in-out;
+  transform-origin: center;
+}
+.button-click-effect:active {
+  transform: scale(0.95);
+}
+
+/* 5. Top fade overlay */
+.fade-top-gradient {
+  position: relative;
+}
+.fade-top-gradient::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 40px;
+  background: linear-gradient(to bottom, white, transparent);
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* 6. Base resets */
+html, body, #root {
+  margin: 0; padding: 0; height: 100%;
 }
