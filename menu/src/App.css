@@ -73,7 +73,6 @@ html, body, #root {
   display: flex;
   align-items: center;
   padding: 1rem 1rem .7rem 1rem;       /* adjust to taste */
-  border-bottom: 1px solid #e5e7eb; /* optional separator */
 }
 
 .sticky-search-bar.focused {
