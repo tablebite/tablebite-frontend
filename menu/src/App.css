@@ -85,11 +85,14 @@ html, body, #root {
   z-index: 20;
 }
 
+/* App.css */
 .scrollable-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
   overflow-y: auto;
-  max-height: calc(100vh - 90px); /* Adjust this to match the height of your header + search bar */
-  scrollbar-width: thin;
-  scrollbar-color: #888 #ddd;
+  /* if you had any bottom padding here, remove it: */
+  padding-bottom: 0;
 }
 
 .scrollable-content::-webkit-scrollbar {

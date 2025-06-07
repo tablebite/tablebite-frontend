@@ -65,7 +65,7 @@ function Home() {
   const skipHighlightOnFocus = useRef(false);
 
    useEffect(() => {
-    // This ensures the scrollable content is at the top on first load
+    // This ensures the ccontent is at the top on first load
     window.scrollTo(0, 0);
   }, []); // Empty dependency array ensures it runs only on the first render
 
@@ -436,7 +436,7 @@ useEffect(() => {
   }
 
   return (
-       <div className="bg-white min-h-screen w-full font-sans text-gray-800 relative flex flex-col">
+   <div className="bg-white h-screen w-full font-sans text-gray-800 relative flex flex-col">
   {/* Scrollable Content Area */}
   <div className="scrollable-content" ref={scrollRef}>
     {!isTyping && (
@@ -888,7 +888,7 @@ useEffect(() => {
         </>
       )}
 
-      </div> 
+    
 
       {/* Footer naturally at bottom */}
       <div className="px-4 py-4 bg-gray-100 text-center text-gray-600 text-sm select-none rounded-t-lg border-t border-gray-300 mt-auto">
@@ -908,6 +908,7 @@ useEffect(() => {
         </div>
       </div>
 
+  </div> 
       <AddCart
   isModalVisible={isModalVisible} // Pass state
   setIsModalVisible={setIsModalVisible} // Pass setter
