@@ -381,7 +381,7 @@ useEffect(() => {
     document.body.style.overflow = 'hidden';  // Prevent scrolling on body
   };
 
-  console.log({restaurant});
+
   
   const closeModal = () => {
     setModalVisible(false);
