@@ -381,6 +381,8 @@ useEffect(() => {
     document.body.style.overflow = 'hidden';  // Prevent scrolling on body
   };
 
+  console.log({restaurant});
+  
   const closeModal = () => {
     setModalVisible(false);
     setTimeout(() => setSelectedItem(null), 300);
@@ -916,8 +918,8 @@ useEffect(() => {
 
       {/* Footer naturally at bottom */}
       <div className="px-4 py-4 bg-gray-100 text-center text-gray-600 text-sm select-none rounded-t-lg border-t border-gray-300 mt-auto">
-        <p className="font-semibold text-gray-700 mb-1">Kottayam Nights Family Restro</p>
-        <p className="text-gray-600 mb-1">Kottayam, Peroor 686637</p>
+        <p className="font-semibold text-gray-700 mb-1">{restaurant.name}</p>
+        <p className="text-gray-600 mb-1">{restaurant.city}, {restaurant.addressLine2} {restaurant.postalCode}</p>
         <div className="border-t border-gray-300 pt-2 mt-2 text-xs text-gray-500">
           © 2025.{' '}
           <a
