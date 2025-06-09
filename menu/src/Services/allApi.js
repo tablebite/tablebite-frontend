@@ -48,3 +48,18 @@ export const toggleItemStatus = async (restaurantId, itemId) => {
   );
 };
 
+//admin api ; get all items without pagination
+export const getAllMenusByRestaurantId = async(restaurantId)=> {
+   const params = new URLSearchParams({
+    restaurantId
+  }).toString();
+   return await catelogAdminAPI('GET', `/admin/api/v1/items/list?${params}`)
+}
+
+//admin api ; get all categories without pagination
+export const getAllCategoriessByRestaurantId = async(restaurantId)=> {
+   const params = new URLSearchParams({
+    restaurantId
+  }).toString();
+   return await catelogAdminAPI('GET', `/admin/api/v1/categories/list?${params}`)
+}
