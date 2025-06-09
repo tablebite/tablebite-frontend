@@ -1,7 +1,8 @@
 // src/pages/Dashboard.jsx
 import React, { useState, useEffect } from 'react'
 import Sidebar from './Sidebar'
-import TransactionsTable from './ItemsTable'
+import Menu from './Menu'
+
 
 export default function Dashboard() {
   const [dark, setDark] = useState(false)
@@ -50,7 +51,7 @@ export default function Dashboard() {
 
               {/* Search input */}
               <div className="flex justify-center flex-1">
-                <div className="relative w-full max-w-xl">
+                {/* <div className="relative w-full max-w-xl">
                   <input
                     className="w-full pl-10 pr-4 text-sm text-gray-700 placeholder-gray-600 bg-gray-100 border-0 rounded-md h-10 dark:placeholder-gray-500 dark:focus:shadow-outline-gray dark:focus:placeholder-gray-600 dark:bg-gray-700 dark:text-gray-200 focus:outline-none"
                     type="text"
@@ -70,7 +71,7 @@ export default function Dashboard() {
                       />
                     </svg>
                   </div>
-                </div>
+                </div> */}
               </div>
 
               {/* Right-side controls */}
@@ -132,13 +133,14 @@ export default function Dashboard() {
           {/* Page content */}
           <main className="h-full overflow-y-auto p-6">
             {selectedMenu === 'dashboard' && (
-              <h1 className="text-2xl font-bold text-gray-700 dark:text-gray-200">
-                Dashboard Overview
+              <h1 className="text-xl text-gray-700 dark:text-gray-300">
+                Dashboard coming soon...
               </h1>
             )}
-            {selectedMenu === 'tables' && (
-              <TransactionsTable restaurantId={restaurantId} />
+            {selectedMenu === 'menu' && (
+              <Menu restaurantId={restaurantId} />
             )}
+              
           </main>
         </div>
       </div>
