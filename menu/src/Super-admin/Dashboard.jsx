@@ -1,26 +1,41 @@
 // src/pages/Dashboard.jsx
-import React, { useState, useEffect } from 'react'
-import Sidebar from './Sidebar'
-import Menu from './Menu'
-
+import React, { useState, useEffect } from 'react';
+import Sidebar from './Sidebar';
+import Menu from './Menu';
+import AddMenuForm from './AddMenuForm';
 
 export default function Dashboard() {
-  const [dark, setDark] = useState(false)
-  const [isSideMenuOpen, setIsSideMenuOpen] = useState(false)
+  const [dark, setDark] = useState(false);
+  const [isSideMenuOpen, setIsSideMenuOpen] = useState(false);
 
   // Persist sidebar selection across reloads
   const [selectedMenu, setSelectedMenu] = useState(() => {
-    return window.localStorage.getItem('dashboardSection') || 'dashboard'
-  })
-  useEffect(() => {
-    window.localStorage.setItem('dashboardSection', selectedMenu)
-  }, [selectedMenu])
+    return window.localStorage.getItem('dashboardSection') || 'dashboard';
+  });
 
-  const toggleTheme    = () => setDark(d => !d)
-  const toggleSideMenu = () => setIsSideMenuOpen(o => !o)
+  useEffect(() => {
+    window.localStorage.setItem('dashboardSection', selectedMenu);
+  }, [selectedMenu]);
+
+  // Persist the theme mode (dark or light) in localStorage and apply it when reloading the page
+  useEffect(() => {
+    const savedTheme = window.localStorage.getItem('theme') === 'dark';
+    setDark(savedTheme);
+  }, []);
+
+  const toggleTheme = () => {
+    setDark((prevDark) => {
+      const newDarkMode = !prevDark;
+      // Save the new theme mode to localStorage
+      window.localStorage.setItem('theme', newDarkMode ? 'dark' : 'light');
+      return newDarkMode;
+    });
+  };
+
+  const toggleSideMenu = () => setIsSideMenuOpen((o) => !o);
 
   // Replace with your real restaurant ID
-  const restaurantId = '000000000001'
+  const restaurantId = '000000000001';
 
   return (
     <div className={dark ? 'dark' : ''}>
@@ -137,13 +152,17 @@ export default function Dashboard() {
                 Dashboard coming soon...
               </h1>
             )}
-            {selectedMenu === 'menu' && (
+            {selectedMenu === 'viewMenu' && (
               <Menu restaurantId={restaurantId} />
             )}
-              
+
+            {selectedMenu === 'addMenu' && (
+              <AddMenuForm restaurantId={restaurantId} />
+            )}
+            {console.log({ selectedMenu })}
           </main>
         </div>
       </div>
     </div>
-  )
+  );
 }
