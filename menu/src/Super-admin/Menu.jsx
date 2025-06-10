@@ -2,67 +2,76 @@ import React, { useState, useEffect } from 'react'
 import { getAllMenusByRestaurantId, toggleItemStatus, getAllCategoriessByRestaurantId } from '../Services/allApi'
 
 export default function Menu({ restaurantId }) {
-  const [transactions, setTransactions] = useState([])  // Store all transactions
+  const [items, setItems] = useState([])  // Store all Items
   const [loading, setLoading] = useState(false)  // Loading state
   const [error, setError] = useState(null)  // Error state
   const [searchQuery, setSearchQuery] = useState('')  // Search query state
-  const [filteredTransactions, setFilteredTransactions] = useState([])  // Filtered transactions for display
+  const [filteredItems, setFilteredItems] = useState([])  // Filtered Items for display
   const [categories, setCategories] = useState([])  // Categories state
   const [selectedCategory, setSelectedCategory] = useState('')  // Selected category filter
 
-  // Fetch all items and categories when restaurantId changes
-  useEffect(() => {
-    if (!restaurantId) return
-    let cancelled = false
 
-    // Fetch menu items
-    ;(async () => {
-      setLoading(true)
-      setError(null)
-      try {
-        const raw = await getAllMenusByRestaurantId(restaurantId)
-        if (cancelled) return
-        const payload = raw.data ?? raw
-        setTransactions(Array.isArray(payload) ? payload : [])
-      } catch (err) {
-        if (!cancelled) {
-          console.error(err)
-          setError('Failed to load items.')
-        }
-      } finally {
-        if (!cancelled) setLoading(false)
+ // Fetch all items and categories when restaurantId changes
+useEffect(() => {
+  if (!restaurantId) return;
+  let cancelled = false;
+
+  // Fetch menu items
+  (async () => {
+    setLoading(true);
+    setError(null); // Clear previous error when starting a new fetch attempt
+    try {
+      const raw = await getAllMenusByRestaurantId(restaurantId);
+      if (cancelled) return;
+      const payload = raw.data ?? raw;
+      setItems(Array.isArray(payload) ? payload : []);
+      setError(null); // Clear error if items are fetched successfully
+    } catch (err) {
+      if (!cancelled) {
+        console.error(err);
+        setError('Failed to load items.');
       }
-    })()
+    } finally {
+      if (!cancelled) setLoading(false);
+    }
+  })();
 
-    // Fetch categories
-    ;(async () => {
-      try {
-        const raw = await getAllCategoriessByRestaurantId(restaurantId)
-        const payload = raw.data ?? raw
-        setCategories(payload)
-      } catch (err) {
-        console.error(err)
-        setError('Failed to load categories.')
-      }
-    })()
+  // Fetch categories
+  (async () => {
+    try {
+      const raw = await getAllCategoriessByRestaurantId(restaurantId);
+      const payload = raw.data ?? raw;
+      setCategories(payload);
+      setError(null); // Clear error if categories are fetched successfully
+    } catch (err) {
+      console.error(err);
+      setError('Failed to load categories.');
+    }
+  })();
 
-    return () => { cancelled = true }
-  }, [restaurantId])
+  return () => {
+    cancelled = true;
+  };
+}, [restaurantId]);
+
+
+
+  
 
   // Handle toggling item status
   const handleToggle = async (id) => {
-    const previous = transactions
+    const previous = items
     const updated = previous.map((tx) =>
       tx.id === id ? { ...tx, isEnabled: !tx.isEnabled } : tx
     )
-    setTransactions(updated)
+    setItems(updated)
 
     try {
       await toggleItemStatus(restaurantId, id)
     } catch (err) {
       console.error('Toggle failed', err)
       setError('Failed to update status.')
-      setTransactions(previous)
+      setItems(previous)
     }
   }
 
@@ -76,9 +85,9 @@ export default function Menu({ restaurantId }) {
     setSelectedCategory(e.target.value)
   }
 
-  // Filter transactions based on search query and selected category
+  // Filter items based on search query and selected category
   useEffect(() => {
-    let filtered = transactions
+    let filtered = items
 
     // Apply search query filter for name, categoryName, and id
     if (searchQuery.trim() !== '') {
@@ -95,10 +104,10 @@ export default function Menu({ restaurantId }) {
       filtered = filtered.filter((item) => item.categoryName === selectedCategory)
     }
 
-    setFilteredTransactions(filtered)
-  }, [searchQuery, transactions, selectedCategory])
+    setFilteredItems(filtered)
+  }, [searchQuery, items, selectedCategory])
 
-  const total = filteredTransactions.length
+  const total = filteredItems.length
 
   return (
     <div className="w-full overflow-hidden rounded-lg shadow-md bg-white dark:bg-gray-800">
@@ -134,7 +143,7 @@ export default function Menu({ restaurantId }) {
           </select>
         </div>
 
-        {/* Table of filtered transactions */}
+        {/* Table of filtered items */}
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
             <thead className="bg-white dark:bg-gray-700">
@@ -154,14 +163,14 @@ export default function Menu({ restaurantId }) {
                     Loading…
                   </td>
                 </tr>
-              ) : filteredTransactions.length === 0 ? (
+              ) : filteredItems.length === 0 ? (
                 <tr>
                   <td colSpan="6" className="px-6 py-4 text-center text-gray-500">
                     No items found.
                   </td>
                 </tr>
               ) : (
-                filteredTransactions.map((item) => (
+                filteredItems.map((item) => (
                   <tr
                     key={item.id}
                     className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
