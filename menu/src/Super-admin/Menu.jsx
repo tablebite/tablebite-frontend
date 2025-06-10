@@ -124,7 +124,7 @@ useEffect(() => {
             type="text"
             value={searchQuery}
             onChange={handleSearchChange}
-            placeholder="Search menu.."
+            placeholder="Search for menu.."
             className="w-full sm:w-2/5 lg:w-full pl-10 pr-4 text-sm text-gray-700 placeholder-gray-600 bg-gray-100 border-0 rounded-md h-10 dark:placeholder-gray-500 dark:focus:shadow-outline-gray dark:focus:placeholder-gray-600 dark:bg-gray-700 dark:text-gray-200 focus:outline-none"
           />
 
