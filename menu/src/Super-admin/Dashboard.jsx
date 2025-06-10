@@ -51,7 +51,7 @@ export default function Dashboard() {
         {/* Main content area */}
         <div className="flex flex-col flex-1 w-full">
           {/* Header */}
-          <header className="z-10 py-4 bg-white shadow-md dark:bg-gray-800">
+          <header className="z-10 py-4 bg-white shadow-sm dark:bg-gray-800">
             <div className="container flex items-center justify-between h-full px-6 mx-auto text-purple-600 dark:text-purple-300">
               {/* Mobile hamburger */}
               <button

@@ -42,26 +42,29 @@ export default function Sidebar({
 
   const [selectionHighlight, setSelectionHighlight] = useState(null);
 
-  // Set the initial selection highlight from localStorage or default to 'dashboard'
+  // Set the initial selection highlight and submenu state from localStorage or default to 'dashboard'
   useEffect(() => {
     const savedMenu = window.localStorage.getItem('selectedMenu') || 'dashboard';
+    const savedSubmenu = window.localStorage.getItem('submenuOpen');
+    const savedSelectionHighlight = window.localStorage.getItem('selectionHighlight');
+
     setSelectedMenu(savedMenu);
-    setSelectionHighlight(savedMenu);
+    setSelectionHighlight(savedSelectionHighlight || savedMenu); // If nothing is stored, default to the menu
+    setSubmenuOpen(savedSubmenu ? JSON.parse(savedSubmenu) : null); // Retrieve and parse the submenu state
   }, [setSelectedMenu]);
 
   const handleMenuClick = (key, subMenu) => {
     if (subMenu) {
       // If the menu has a submenu, toggle it
-      if (submenuOpen === key) {
-        setSubmenuOpen(null); // Close submenu when the same menu is clicked
-      } else {
-        setSubmenuOpen(key); // Open the selected submenu
-      }
+      const newSubmenuState = submenuOpen === key ? null : key;
+      setSubmenuOpen(newSubmenuState); // Set submenu state
+      window.localStorage.setItem('submenuOpen', JSON.stringify(newSubmenuState)); // Save submenu state
     } else {
       // If the menu does not have a submenu, directly select it
       setSelectedMenu(key);
       setSelectionHighlight(key);  // Set the highlighted selection
       window.localStorage.setItem('selectedMenu', key); // Save selected menu to localStorage
+      window.localStorage.setItem('selectionHighlight', key); // Save the highlight state
       setSubmenuOpen(null); // Ensure submenu is closed when selecting a non-submenu item
     }
   };
@@ -71,13 +74,14 @@ export default function Sidebar({
     setSelectedMenu(subKey);
     setSelectionHighlight(parentKey || subKey);  // Keep the parent menu highlighted
     window.localStorage.setItem('selectedMenu', subKey); // Save selected submenu to localStorage
+    window.localStorage.setItem('selectionHighlight', parentKey || subKey); // Save highlight state
     // Don't close the submenu after selecting a submenu item, leave it open
   };
 
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside className="z-20 hidden w-64 overflow-y-auto bg-white dark:bg-gray-800 md:block">
+      <aside className="z-20 hidden w-64  shadow-sm overflow-y-auto bg-white dark:bg-gray-800 md:block">
         <div className="py-4 text-gray-500 dark:text-gray-400">
           <a className="ml-6 text-lg font-bold text-gray-800 dark:text-gray-200" href="#">
             Tablebite
@@ -185,7 +189,7 @@ export default function Sidebar({
                 {/* Dropdown Menu with smooth animation */}
                 {subMenu && submenuOpen === key && (
                   <ul
-                    className="mt-2 pl-6 bg-gray-100 dark:bg-gray-700 rounded-md shadow-md overflow-hidden transition-all duration-300 ease-in-out"
+                    className="mt-2 pl-6 bg-gray-100 dark:bg-gray-100 rounded-sm overflow-hidden transition-all duration-300 ease-in-out"
                     style={{
                       maxHeight: submenuOpen === key ? '300px' : '0', // Control the height transition
                       opacity: submenuOpen === key ? '1' : '0', // Control the opacity
