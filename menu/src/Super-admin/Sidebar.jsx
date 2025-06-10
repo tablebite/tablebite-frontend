@@ -189,7 +189,7 @@ export default function Sidebar({
                 {/* Dropdown Menu with smooth animation */}
                 {subMenu && submenuOpen === key && (
                   <ul
-                    className="mt-2 pl-6 bg-gray-100 dark:bg-gray-700 rounded-md shadow-md overflow-hidden transition-all duration-300 ease-in-out"
+                    className="mt-2 pl-6 bg-gray-100 dark:bg-gray-100 rounded-sm overflow-hidden transition-all duration-300 ease-in-out"
                     style={{
                       maxHeight: submenuOpen === key ? '300px' : '0', // Control the height transition
                       opacity: submenuOpen === key ? '1' : '0', // Control the opacity
