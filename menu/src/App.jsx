@@ -26,7 +26,8 @@ const App = () => {
                         <Route path="/" element={<Landing />} />
                         <Route path="/restaurant/:restaurantId" element={<Home />} />
                     </>
-             
+                )}
+                
             </Routes>
         
     );
