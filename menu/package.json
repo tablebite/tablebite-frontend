@@ -1,18 +1,31 @@
 {
-  "name": "menucard",
-  "version": "0.1.0",
+  "name": "horizon-ui-tailwind-react",
+  "version": "2.0.0",
   "private": true,
   "dependencies": {
-    "@fortawesome/fontawesome-free": "^6.7.2",
+    "@chakra-ui/hooks": "^2.1.4",
+    "@chakra-ui/modal": "^2.2.9",
+    "@chakra-ui/popover": "^2.1.8",
+    "@chakra-ui/portal": "^2.0.15",
+    "@chakra-ui/system": "^2.3.5",
+    "@chakra-ui/tooltip": "^2.2.6",
+    "@emotion/react": "^11.10.5",
+    "@emotion/styled": "^11.10.5",
+    "@tanstack/react-table": "^8.7.9",
+    "@testing-library/jest-dom": "^6.4.6",
+    "@testing-library/react": "^16.0.0",
+    "@testing-library/user-event": "^14.5.2",
+    "apexcharts": "3.35.5",
+    "react-apexcharts": "1.4.0",
+    "react-calendar": "^5.0.0",
+    "tailwindcss-rtl": "^0.9.0",
+     "@fortawesome/fontawesome-free": "^6.7.2",
     "@fortawesome/free-solid-svg-icons": "^6.7.2",
     "@fortawesome/react-fontawesome": "^0.2.2",
     "@heroicons/react": "^1.0.6",
     "@iconify/react": "^5.0.2",
     "@tailwindcss/forms": "^0.5.10",
     "@testing-library/dom": "^10.4.0",
-    "@testing-library/jest-dom": "^6.6.3",
-    "@testing-library/react": "^16.2.0",
-    "@testing-library/user-event": "^13.5.0",
     "axios": "^1.9.0",
     "firebase": "^11.6.0",
     "framer-motion": "^12.9.2",
@@ -36,7 +49,8 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "pretty": "prettier --write \"./**/*.{js,jsx,json}\""
   },
   "eslintConfig": {
     "extends": [
@@ -57,6 +71,10 @@
     ]
   },
   "devDependencies": {
-    "tailwindcss": "^3.4.14"
+    "autoprefixer": "^10.4.8",
+    "postcss": "^8.4.16",
+    "prettier": "^2.8.3",
+    "prettier-plugin-tailwindcss": "^0.2.1",
+    "tailwindcss": "^3.1.8"
   }
 }
