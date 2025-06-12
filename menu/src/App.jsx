@@ -16,7 +16,7 @@ const App = () => {
      {hostname === "superadmin.tablebite.in" ||  hostname === "admin.tablebite.in"?
       (<Routes>
       <Route path="auth/*" element={<AuthLayout />} />
-      <Route path="/*" element={<AdminLayout />} />
+      <Route path="admin/*" element={<AdminLayout />} />
       <Route path="rtl/*" element={<RtlLayout />} />
      </Routes>) 
      : 
