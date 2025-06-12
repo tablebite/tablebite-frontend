@@ -13,17 +13,17 @@ const App = () => {
 
   return (
     <>
-     {hostname === "superadmin.tablebite.in" ||  hostname === "admin.tablebite.in"?
-      (<Routes>
+   
+      <Routes>
       <Route path="auth/*" element={<AuthLayout />} />
-      <Route path="/*" element={<AdminLayout />} />
+      <Route path="admin/*" element={<AdminLayout />} />
       <Route path="rtl/*" element={<RtlLayout />} />
-     </Routes>) 
-     : 
-     ( <Routes>
+     </Routes>
+     
+      <Routes>
       <Route path="/" element={<Landing/>} />
       <Route path="/restaurant/:restaurantId" element={<Home />} />
-    </Routes>)}
+    </Routes>
     </>
   );
 };
