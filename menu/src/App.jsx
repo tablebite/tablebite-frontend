@@ -17,7 +17,7 @@ const App = () => {
                 {hostname === "admin.tablebite.in" ? (
                     <>
                         <Route path="auth/*" element={<AuthLayout />} />
-                        <Route path="admin/*" element={<AdminLayout />} />
+                        <Route path="/*" element={<AdminLayout />} />
                         <Route path="rtl/*" element={<RtlLayout />} />
                     </>
                 ) : (
