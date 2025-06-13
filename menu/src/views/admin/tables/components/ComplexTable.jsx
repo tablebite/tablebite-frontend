@@ -11,6 +11,7 @@ import {
 } from "@tanstack/react-table";
 import Switch from "components/switch"; // Assuming Switch is a custom component
 import { FiSearch } from "react-icons/fi";
+import Dropdown from "components/icons/Dropdown";
 
 const columnHelper = createColumnHelper();
 
@@ -41,6 +42,7 @@ export default function ComplexTable(props) {
   const [loading, setLoading] = useState(true); // Loading state
   const [error, setError] = useState(null); // Error state
   const [sorting, setSorting] = useState([]);
+  const [selectedFilter, setSelectedFilter] = useState(""); // For managing dropdown selection
 
   // Define columns for the table, now using API response fields
   const columns = [
@@ -220,18 +222,19 @@ export default function ComplexTable(props) {
 
   return (
     <Card extra={"w-full sm:w-[100%] md:w-[100%] lg:w-[100%] h-[600px] px-10 pb-10 sm:overflow-x-auto"}>
-      <div className="mt-8 mb-4 flex items-center rounded-md bg-lightPrimary text-navy-700 dark:bg-navy-900 dark:text-white xl:w-[225px]">
-        <p className="text-xl pe-2 ps-3">
-          <FiSearch className="h-10 w-4 text-gray-400 dark:text-white" />
-
-        </p>
-        <input
-          type="text"
-          placeholder="Search menu..."
-          className="block h-full w-full rounded-md bg-lightPrimary text-sm font-medium text-navy-700 outline-none placeholder:!text-gray-400 dark:bg-navy-900 dark:text-white dark:placeholder:!text-white sm:w-fit"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
+  <div className=" mt-8 flex items-center rounded-md bg-lightPrimary text-navy-700 dark:bg-navy-900 dark:text-white xl:w-[225px]">
+    <p className="text-xl pe-2 ps-3">
+      <FiSearch className="h-10 w-4 text-gray-400 dark:text-white" />
+    </p>
+    <input
+      type="text"
+      placeholder="Search menu..."
+      className="mr-12 block h-full rounded-md bg-lightPrimary text-sm font-medium text-navy-700 outline-none placeholder:!text-gray-400 dark:bg-navy-900 dark:text-white dark:placeholder:!text-white sm:w-fit"
+      value={searchQuery}
+      onChange={(e) => setSearchQuery(e.target.value)}
+    />
+    {/* Dropdown on the right side of the search bar with margin-left */}
+   <Dropdown/>
       </div>
 
       <div className="mt-8 overflow-x-scroll xl:overflow-x-auto">
