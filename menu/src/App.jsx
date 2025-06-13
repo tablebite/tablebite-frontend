@@ -14,19 +14,19 @@ const App = () => {
         
             <Routes>
                 {/* Check if the hostname is 'admin.tablebite.in' */}
-                {hostname === "admin.tablebite.in" ? (
+                {/* {hostname === "localhost" ? ( */}
                     <>
                         <Route path="auth/*" element={<AuthLayout />} />
                        <Route path="admin/*" element={<AdminLayout />} />
                         <Route path="rtl/*" element={<RtlLayout />} />
                     </>
-                ) : (
+                {/* ) : ( */}
                     <>
                         {/* Default routes when hostname is not 'admin.tablebite.in' */}
                         <Route path="/" element={<Landing />} />
                         <Route path="/restaurant/:restaurantId" element={<Home />} />
-                    </>
-                )}
+                    </> 
+                {/* )} */}
                 
             </Routes>
         
