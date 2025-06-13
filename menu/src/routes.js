@@ -3,6 +3,7 @@ import React from "react";
 // Admin Imports
 import MainDashboard from "views/admin/default";
 import NFTMarketplace from "views/admin/marketplace";
+import Table from "views/admin/tables/index";
 import Profile from "views/admin/profile";
 import DataTables from "views/admin/tables";
 import RTLDefault from "views/rtl/default";
@@ -28,11 +29,11 @@ const routes = [
     component: <MainDashboard />,
   },
   {
-    name: "NFT Marketplace",
+    name: "Menu",
     layout: "/admin",
-    path: "nft-marketplace",
+    path: "menu",
     icon: <MdOutlineShoppingCart className="h-6 w-6" />,
-    component: <NFTMarketplace />,
+    component: <Table />,
     secondary: true,
   },
   {
