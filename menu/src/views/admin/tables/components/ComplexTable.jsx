@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Card from "components/card";
 import { getAllMenusByRestaurantId } from "../../../../Services/allApi";
+import { toggleItemStatus } from "../../../../Services/allApi"; // Import the toggle API
 import {
   createColumnHelper,
   flexRender,
@@ -8,6 +9,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
+import Switch from "components/switch"; // Assuming Switch is a custom component
 
 const columnHelper = createColumnHelper();
 
@@ -58,37 +60,56 @@ export default function ComplexTable(props) {
       header: () => (
         <p className="text-sm font-bold text-gray-600 dark:text-white">STATUS</p>
       ),
-      cell: (info) => (
-        <div className="flex items-center gap-3">
-          <label className="inline-flex relative items-center cursor-pointer">
-            <input
-              type="checkbox"
-              id="switch1"
-              checked={info.getValue()}
-              onChange={() => {
-                // Handle the status toggle here
-                const updatedData = [...data];
-                const index = updatedData.findIndex(item => item.id === info.row.original.id);
-                if (index !== -1) {
-                  updatedData[index].isEnabled = !updatedData[index].isEnabled;
-                  setData(updatedData);
+      cell: (info) => {
+        const currentRow = info.row.original;
+
+        return (
+          <div className="mt-3 flex items-center gap-3">
+            <Switch
+              id={`switch-${currentRow.id}`} // Unique id for each switch
+              checked={currentRow.isEnabled} // Set the switch state based on isEnabled
+              onChange={async () => {
+                // Optimistically update the state locally
+                const updatedData = data.map((item) => {
+                  if (item.id === currentRow.id) {
+                    return {
+                      ...item,
+                      isEnabled: !item.isEnabled, // Toggle the state
+                    };
+                  }
+                  return item;
+                });
+
+                setData(updatedData); // Update the data state to trigger re-render
+
+                try {
+                  // Call the API to update the status
+                  await toggleItemStatus(restaurantId, currentRow.id);
+                } catch (error) {
+                  // If the API fails, revert the status back to the previous value
+                  const revertedData = data.map((item) => {
+                    if (item.id === currentRow.id) {
+                      return {
+                        ...item,
+                        isEnabled: currentRow.isEnabled, // Revert to the original value
+                      };
+                    }
+                    return item;
+                  });
+                  setData(revertedData); // Revert the data state
+                  setError("Failed to update the status. Please try again.");
                 }
               }}
-              className="sr-only peer"
             />
-            <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-green-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-checked:after:bg-white peer-checked:after:border-2 peer-checked:after:w-6 peer-checked:after:h-6 peer-checked:transition-all peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 dark:bg-gray-700 dark:peer-focus:ring-blue-800 dark:peer-checked:bg-green-600"></div>
-          </label>
-          <label
-            htmlFor="switch1"
-            className="text-base font-medium text-navy-700 dark:text-white"
-          >
-            Item comment notifications
-          </label>
-          <p className="text-sm font-bold text-navy-700 dark:text-white">
-            {info.getValue() ? "Enabled" : "Disabled"}
-          </p>
-        </div>
-      ),
+            {/* <label
+              htmlFor={`switch-${currentRow.id}`}
+              className="text-base font-medium text-navy-700 dark:text-white"
+            >
+              Item comment notifications
+            </label> */}
+          </div>
+        );
+      },
     }),
   ];
 
