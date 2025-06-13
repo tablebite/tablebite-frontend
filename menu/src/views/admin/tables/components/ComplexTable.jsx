@@ -10,18 +10,64 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import Switch from "components/switch"; // Assuming Switch is a custom component
+import { FiSearch } from "react-icons/fi";
 
 const columnHelper = createColumnHelper();
+
+const SearchIcon = () => {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      className="mx-3 my-[12px] h-5 w-5 cursor-pointer text-navy-700"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+      />
+    </svg>
+  );
+};
 
 export default function ComplexTable(props) {
   const restaurantId = '000000000001'; // You can update this with a dynamic value if needed
   const [data, setData] = useState([]);
+  const [filteredData, setFilteredData] = useState([]); // Data after applying search filter
+  const [searchQuery, setSearchQuery] = useState(""); // Search input state
   const [loading, setLoading] = useState(true); // Loading state
   const [error, setError] = useState(null); // Error state
   const [sorting, setSorting] = useState([]);
 
   // Define columns for the table, now using API response fields
   const columns = [
+    columnHelper.accessor("imageUrls", {
+      id: "imageUrls",
+      header: () => (
+        <p className="text-sm font-bold text-gray-600 dark:text-white">IMAGE</p>
+      ),
+      cell: (info) => {
+        const currentRow = info.row.original;
+        const firstImage = currentRow.imageUrls && currentRow.imageUrls[0]; // Get the first image URL
+
+        return (
+          <div className="flex items-center">
+            {firstImage ? (
+              <img src={firstImage} alt="item" className="w-16 h-16 object-cover rounded-md" />
+            ) : (
+              <img
+                src="https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png" // Placeholder image URL
+                alt="Placeholder"
+                className="w-16 h-16 object-cover rounded-md"
+              />
+            )}
+          </div>
+        );
+      },
+    }),
     columnHelper.accessor("name", {
       id: "name",
       header: () => (
@@ -101,12 +147,6 @@ export default function ComplexTable(props) {
                 }
               }}
             />
-            {/* <label
-              htmlFor={`switch-${currentRow.id}`}
-              className="text-base font-medium text-navy-700 dark:text-white"
-            >
-              Item comment notifications
-            </label> */}
           </div>
         );
       },
@@ -115,7 +155,7 @@ export default function ComplexTable(props) {
 
   // Use React Table hook
   const table = useReactTable({
-    data,
+    data: filteredData, // Use filtered data for rendering
     columns,
     state: {
       sorting,
@@ -143,6 +183,7 @@ export default function ComplexTable(props) {
         console.log("API Response: ", response);
 
         setData(response.data); // The response should be an array of objects
+        setFilteredData(response.data); // Initially set filteredData to the full list
         setLoading(false);
       } catch (err) {
         console.error("Error fetching data: ", err);
@@ -156,6 +197,19 @@ export default function ComplexTable(props) {
     }
   }, [restaurantId]);
 
+  // Search functionality
+  useEffect(() => {
+    const filtered = data.filter((item) => {
+      return (
+        item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.categoryName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.type.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    });
+
+    setFilteredData(filtered); // Update filtered data
+  }, [searchQuery, data]);
+
   if (loading) {
     return <div className="mt-5">Loading...</div>;
   }
@@ -166,6 +220,20 @@ export default function ComplexTable(props) {
 
   return (
     <Card extra={"w-full sm:w-[100%] md:w-[100%] lg:w-[100%] h-[600px] px-10 pb-10 sm:overflow-x-auto"}>
+      <div className="mt-8 mb-4 flex items-center rounded-md bg-lightPrimary text-navy-700 dark:bg-navy-900 dark:text-white xl:w-[225px]">
+        <p className="text-xl pe-2 ps-3">
+          <FiSearch className="h-10 w-4 text-gray-400 dark:text-white" />
+
+        </p>
+        <input
+          type="text"
+          placeholder="Search menu..."
+          className="block h-full w-full rounded-md bg-lightPrimary text-sm font-medium text-navy-700 outline-none placeholder:!text-gray-400 dark:bg-navy-900 dark:text-white dark:placeholder:!text-white sm:w-fit"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+      </div>
+
       <div className="mt-8 overflow-x-scroll xl:overflow-x-auto">
         <table className="w-full">
           <thead>
