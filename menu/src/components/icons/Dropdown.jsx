@@ -2,14 +2,16 @@
 import React, { useState } from "react";
 import { FiChevronDown } from "react-icons/fi";
 
-export default function Dropdown({ categories, setSelectedFilter }) {
+export default function Dropdown({
+  options = [],
+  selectedOption,
+  setSelectedOption,
+}) {
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedOption, setSelectedOption] = useState("All");
 
   const toggleDropdown = () => setIsOpen((o) => !o);
   const handleOptionClick = (opt) => {
     setSelectedOption(opt);
-    setSelectedFilter(opt);
     setIsOpen(false);
   };
 
@@ -29,26 +31,22 @@ export default function Dropdown({ categories, setSelectedFilter }) {
       </button>
 
       {isOpen && (
-        <div className="
-          absolute left-0 mt-1 w-full
-          bg-white text-sm shadow-lg rounded-md
-          border border-gray-300
-          dark:bg-navy-900 dark:border-gray-600
-          z-10 max-h-60 overflow-y-auto
-        ">
-          <div
-            onClick={() => handleOptionClick("All")}
-            className="px-4 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-navy-700"
-          >
-            All
-          </div>
-          {categories.map((cat) => (
+        <div
+          className="
+            absolute left-0 mt-1 w-full
+            bg-white text-sm shadow-lg rounded-md
+            border border-gray-300
+            dark:bg-navy-900 dark:border-gray-600
+            z-10 max-h-60 overflow-y-auto
+          "
+        >
+          {options.map((opt) => (
             <div
-              key={cat.id}
-              onClick={() => handleOptionClick(cat.name)}
+              key={opt}
+              onClick={() => handleOptionClick(opt)}
               className="px-4 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-navy-700"
             >
-              {cat.name}
+              {opt}
             </div>
           ))}
         </div>

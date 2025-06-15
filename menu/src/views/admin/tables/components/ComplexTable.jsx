@@ -27,16 +27,15 @@ export default function ComplexTable() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [sorting, setSorting] = useState([]);
-  const [selectedFilter, setSelectedFilter] = useState("All");
+  const [selectedFilter, setSelectedFilter] = useState("Select all category");
+  const [selectedStatus, setSelectedStatus] = useState("Select all status");
   const [categories, setCategories] = useState([]);
 
   const columns = [
     columnHelper.accessor("imageUrls", {
       id: "imageUrls",
       header: () => (
-        <p className="text-sm font-bold text-gray-600 dark:text-white">
-          IMAGE
-        </p>
+        <p className="text-sm font-bold text-gray-600 dark:text-white">IMAGE</p>
       ),
       cell: (info) => {
         const img = info.row.original.imageUrls?.[0];
@@ -160,12 +159,15 @@ export default function ComplexTable() {
           item.categoryName.toLowerCase().includes(q) ||
           item.type.toLowerCase().includes(q);
         const matchCat =
-          selectedFilter === "All" ||
-          item.categoryName === selectedFilter;
-        return matchText && matchCat;
+          selectedFilter === "Select all category" || item.categoryName === selectedFilter;
+        const matchStatus =
+          selectedStatus === "Select all status" ||
+          (selectedStatus === "Active" && item.isEnabled) ||
+          (selectedStatus === "Inactive" && !item.isEnabled);
+        return matchText && matchCat && matchStatus;
       })
     );
-  }, [searchQuery, data, selectedFilter]);
+  }, [searchQuery, data, selectedFilter, selectedStatus]);
 
   if (loading) return <div className="mt-5">Loading...</div>;
   if (error) return <div className="mt-5 text-red-500">{error}</div>;
@@ -175,22 +177,21 @@ export default function ComplexTable() {
       {/* --------------- */}
       {/* RESPONSIVE FILTER BAR */}
       {/* --------------- */}
-      <div className="
+      <div
+        className="
         mt-8
         flex flex-col sm:flex-row
         items-start sm:items-center
         gap-y-2 sm:gap-x-4
-      ">
-       {/* Search */}
+      "
+      >
+        {/* Search */}
         <div className="w-full sm:w-64 relative">
-          {/* Position icon absolutely inside the input */}
           <FiSearch
             className="
               pointer-events-none
-              absolute
-              left-3
-              top-1/2
-              transform -translate-y-1/2
+              absolute left-3
+              top-1/2 transform -translate-y-1/2
               h-5 w-5
               text-gray-400 dark:text-white
             "
@@ -201,8 +202,7 @@ export default function ComplexTable() {
             className="
               w-full
               h-12
-              pl-10        /* enough left padding to clear the icon */
-              pr-3
+              pl-10 pr-3
               rounded-md
               bg-lightPrimary
               text-sm font-medium text-navy-700
@@ -215,11 +215,21 @@ export default function ComplexTable() {
           />
         </div>
 
-        {/* Dropdown */}
+        {/* Category Filter */}
         <div className="w-full sm:w-64 sm:mt-0 mt-2">
           <Dropdown
-            categories={categories}
-            setSelectedFilter={setSelectedFilter}
+            options={["Select all category", ...categories.map((c) => c.name)]}
+            selectedOption={selectedFilter}
+            setSelectedOption={setSelectedFilter}
+          />
+        </div>
+
+        {/* Status Filter */}
+        <div className="w-full sm:w-64 sm:mt-0 mt-2">
+          <Dropdown
+            options={["Select all status", "Active", "Inactive"]}
+            selectedOption={selectedStatus}
+            setSelectedOption={setSelectedStatus}
           />
         </div>
       </div>
