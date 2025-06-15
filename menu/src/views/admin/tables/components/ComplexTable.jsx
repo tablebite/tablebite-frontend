@@ -1,7 +1,11 @@
-// ComplexTable.jsx
+// src/components/ComplexTable.jsx
+
 import React, { useState, useEffect } from "react";
 import Select from "react-select";
 import Card from "components/card";
+import Switch from "components/switch";
+import Dropdown from "components/icons/Dropdown";
+import ImageUploader from "./ImageUploader";
 import {
   getAllMenusByRestaurantId,
   toggleItemStatus,
@@ -15,62 +19,103 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import Switch from "components/switch";
 import { FiSearch, FiEdit } from "react-icons/fi";
-import Dropdown from "components/icons/Dropdown";
 
 const columnHelper = createColumnHelper();
 
 export default function ComplexTable() {
   const restaurantId = "000000000001";
 
-  // RAW DATA & FILTERS
-  const [data, setData] = useState([]);
+  // detect dark mode once
+  const isDark = typeof document !== "undefined"
+    && document.documentElement.classList.contains("dark");
+
+  // react-select styles for both light & dark
+  const selectStyles = {
+    control: base => ({
+      ...base,
+      backgroundColor:   isDark ? "#1e293b" : "#ffffff",
+      borderColor:       isDark ? "#334155" : "#d1d5db",
+      color:             isDark ? "#f1f5f9" : "#111827",
+    }),
+    singleValue: base => ({
+      ...base,
+      color: isDark ? "#f1f5f9" : "#111827",
+    }),
+    placeholder: base => ({
+      ...base,
+      color: isDark ? "#94a3b8" : "#6b7280",
+    }),
+    menu: base => ({
+      ...base,
+      backgroundColor: isDark ? "#1e293b" : "#ffffff",
+    }),
+    menuList: base => ({
+      ...base,
+      backgroundColor: isDark ? "#1e293b" : "#ffffff",
+    }),
+    option: (base, { isFocused }) => ({
+      ...base,
+      backgroundColor: isFocused
+        ? (isDark ? "#334155" : "#f3f4f6")
+        : "transparent",
+      color: isDark ? "#f1f5f9" : "#111827",
+    }),
+    input: base => ({
+      ...base,
+      color: isDark ? "#f1f5f9" : "#111827",
+    }),
+  };
+
+  // DATA + FILTERS
+  const [data, setData]                 = useState([]);
   const [filteredData, setFilteredData] = useState([]);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery]   = useState("");
   const [selectedFilter, setSelectedFilter] = useState("Select all category");
   const [selectedStatus, setSelectedStatus] = useState("Select all status");
 
   // LOADING / ERROR / SORTING
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error,   setError]   = useState(null);
   const [sorting, setSorting] = useState([]);
 
-  // CATEGORIES LIST (for filters & edit modal)
+  // CATEGORIES
   const [categories, setCategories] = useState([]);
 
-  // EDIT‐ITEM MODAL & FORM STATE
-  const [isEditOpen, setIsEditOpen] = useState(false);
+  // EDIT MODAL
+  const [isEditOpen,  setIsEditOpen]  = useState(false);
   const [editingItem, setEditingItem] = useState(null);
-  const [formValues, setFormValues] = useState({
+  const [formValues,  setFormValues]  = useState({
     name: "",
     description: "",
     categoryName: "",
     type: "",
+    imageUrls: []        // include imageUrls in initial state
   });
   const [saving, setSaving] = useState(false);
 
-  // STATUS‐CONFIRM MODAL STATE
+  // STATUS CONFIRM
   const [confirmState, setConfirmState] = useState({
-    isOpen: false,
-    item: null,
-    newStatus: false,
-    loading: false,
+    isOpen: false, item: null, newStatus: false, loading: false
   });
 
-  // LOCK BACKGROUND SCROLL WHEN A MODAL IS OPEN
+  // Prevent background scroll when modal open
   useEffect(() => {
-    document.body.style.overflow = isEditOpen || confirmState.isOpen ? "hidden" : "";
+    document.body.style.overflow = isEditOpen || confirmState.isOpen
+      ? "hidden"
+      : "";
     return () => { document.body.style.overflow = ""; };
   }, [isEditOpen, confirmState.isOpen]);
 
-  // FETCH DATA & CATEGORIES
+  // FETCH on mount
   useEffect(() => {
     (async () => {
       setLoading(true);
       try {
-        const menusRes = await getAllMenusByRestaurantId(restaurantId);
-        const catsRes  = await getAllCategoriessByRestaurantId(restaurantId);
+        const [menusRes, catsRes] = await Promise.all([
+          getAllMenusByRestaurantId(restaurantId),
+          getAllCategoriessByRestaurantId(restaurantId),
+        ]);
         setData(menusRes.data);
         setFilteredData(menusRes.data);
         setCategories(catsRes.data);
@@ -82,7 +127,7 @@ export default function ComplexTable() {
     })();
   }, [restaurantId]);
 
-  // FILTERING LOGIC
+  // FILTER logic
   useEffect(() => {
     const q = searchQuery.toLowerCase();
     setFilteredData(
@@ -96,21 +141,21 @@ export default function ComplexTable() {
           item.categoryName === selectedFilter;
         const matchStatus =
           selectedStatus === "Select all status" ||
-          (selectedStatus === "Active" && item.isEnabled) ||
+          (selectedStatus === "Active"   && item.isEnabled) ||
           (selectedStatus === "Inactive" && !item.isEnabled);
         return matchText && matchCat && matchStatus;
-      })
-    );
+      }))
   }, [searchQuery, data, selectedFilter, selectedStatus]);
 
-  // OPEN / CLOSE EDIT MODAL
+  // OPEN edit modal
   const openEditModal = item => {
     setEditingItem(item);
     setFormValues({
-      name:         item.name || "",
-      description:  item.description || "",
+      name:         item.name         || "",
+      description:  item.description  || "",
       categoryName: item.categoryName || "",
-      type:         item.type || "",
+      type:         item.type         || "",
+      imageUrls:    item.imageUrls    || []   // load existing URLs here
     });
     setError(null);
     setIsEditOpen(true);
@@ -121,7 +166,7 @@ export default function ComplexTable() {
     setError(null);
   };
 
-  // OPEN / CLOSE STATUS CONFIRM MODAL
+  // STATUS confirm
   const openConfirm = item => {
     setConfirmState({
       isOpen:    true,
@@ -131,30 +176,29 @@ export default function ComplexTable() {
     });
   };
   const closeConfirm = () => {
-    setConfirmState({ isOpen: false, item: null, newStatus: false, loading: false });
+    setConfirmState({ isOpen:false, item:null, newStatus:false, loading:false });
   };
-
-  // HANDLE STATUS TOGGLE
   const handleConfirmToggle = async () => {
     const { item, newStatus } = confirmState;
     setConfirmState(s => ({ ...s, loading: true }));
     try {
       await toggleItemStatus(restaurantId, item.id);
-      setData(prev =>
-        prev.map(i => i.id === item.id ? { ...i, isEnabled: newStatus } : i)
-      );
+      setData(d => d.map(i => i.id === item.id
+        ? { ...i, isEnabled: newStatus }
+        : i
+      ));
       closeConfirm();
     } catch {
-      setError("Failed to update status. Please try again.");
+      setError("Failed to update status");
       setConfirmState(s => ({ ...s, loading: false }));
     }
   };
 
-  // HANDLE EDIT FORM CHANGE
+  // FORM change
   const handleFormChange = (field, value) =>
-    setFormValues(prev => ({ ...prev, [field]: value }));
+    setFormValues(fv => ({ ...fv, [field]: value }));
 
-  // SAVE EDITED ITEM
+  // SAVE item
   const handleSave = async () => {
     if (!editingItem) return;
     setSaving(true);
@@ -165,76 +209,78 @@ export default function ComplexTable() {
         description: formValues.description,
         categoryId:  chosen?.id || "",
         type:        formValues.type,
-        imageUrls:   editingItem.imageUrls,
+        imageUrls:   formValues.imageUrls
       };
       const resp = await updateItemByRestaurantId(
-        restaurantId,
-        editingItem.id,
-        payload
+        restaurantId, editingItem.id, payload
       );
       const updated = resp.data;
-      setData(prev => prev.map(i => i.id === updated.id ? updated : i));
+      setData(d => d.map(i => i.id === updated.id ? updated : i));
       closeEditModal();
     } catch {
-      setError("Failed to update item. Please try again.");
+      setError("Failed to update item");
     } finally {
       setSaving(false);
     }
   };
 
-  // TABLE COLUMNS
+  // TABLE setup
   const columns = [
     columnHelper.accessor("imageUrls", {
-      id: "imageUrls",
-      header: () => <p className="text-sm font-bold text-gray-600 dark:text-white">IMAGE</p>,
+      id: "image",
+      header: () => <p className="text-sm font-bold">IMAGE</p>,
       cell: info => {
         const img = info.row.original.imageUrls?.[0];
-        return <img
-          src={img || "https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png"}
-          alt=""
-          className="w-16 h-16 object-cover rounded-md"
-        />;
-      },
+        return (
+          <img
+            src={img || "https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png"}
+            className="w-16 h-16 object-cover rounded-md"
+            alt=""
+          />
+        );
+      }
     }),
     columnHelper.accessor("name", {
       id: "name",
-      header: () => <p className="text-sm font-bold text-gray-600 dark:text-white">NAME</p>,
-      cell: info => <span className="text-sm text-navy-700 dark:text-white">{info.getValue()}</span>,
+      header: () => <p className="text-sm font-bold">NAME</p>,
+      cell: info => <span className="text-sm">{info.getValue()}</span>
     }),
     columnHelper.accessor("categoryName", {
       id: "categoryName",
-      header: () => <p className="text-sm font-bold text-gray-600 dark:text-white">CATEGORY</p>,
-      cell: info => <span className="text-sm text-navy-700 dark:text-white">{info.getValue()}</span>,
+      header: () => <p className="text-sm font-bold">CATEGORY</p>,
+      cell: info => <span className="text-sm">{info.getValue()}</span>
     }),
     columnHelper.accessor("type", {
       id: "type",
-      header: () => <p className="text-sm font-bold text-gray-600 dark:text-white">TYPE</p>,
-      cell: info => <span className="text-sm text-navy-700 dark:text-white">{info.getValue().replace(/_/g, " ")}</span>,
+      header: () => <p className="text-sm font-bold">TYPE</p>,
+      cell: info => <span className="text-sm">{info.getValue().replace(/_/g," ")}</span>
     }),
     columnHelper.accessor("isEnabled", {
       id: "isEnabled",
-      header: () => <p className="text-sm font-bold text-gray-600 dark:text-white">STATUS</p>,
+      header: () => <p className="text-sm font-bold">STATUS</p>,
       cell: info => {
         const row = info.row.original;
-        return <Switch
-          id={`switch-${row.id}`}
-          checked={row.isEnabled}
-          onChange={() => openConfirm(row)}
-        />;
-      },
+        return (
+          <Switch
+            id={`switch-${row.id}`}
+            checked={row.isEnabled}
+            onChange={() => openConfirm(row)}
+          />
+        );
+      }
     }),
     columnHelper.display({
       id: "actions",
-      header: () => <p className="text-sm font-bold text-gray-600 dark:text-white">ACTIONS</p>,
+      header: () => <p className="text-sm font-bold">ACTIONS</p>,
       cell: ({ row }) => (
         <button
           onClick={() => openEditModal(row.original)}
           className="p-1 hover:bg-gray-100 dark:hover:bg-navy-700 rounded"
         >
-          <FiEdit className="h-5 w-5 text-blue-500" />
+          <FiEdit className="w-5 h-5 text-blue-500"/>
         </button>
-      ),
-    }),
+      )
+    })
   ];
 
   const table = useReactTable({
@@ -242,19 +288,15 @@ export default function ComplexTable() {
     columns,
     state: { sorting },
     onSortingChange: setSorting,
-    getCoreRowModel:  getCoreRowModel(),
+    getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
   });
 
   if (loading) return <div className="mt-5">Loading...</div>;
 
   const headerGroups = table.getHeaderGroups();
-  const rows = table.getRowModel().rows;
-
-    const options = categories.map(c => ({
-    value: c.name,
-    label: c.name,
-  }));
+  const rows         = table.getRowModel().rows;
+  const options      = categories.map(c => ({ value: c.name, label: c.name }));
 
   return (
     <>
@@ -262,11 +304,12 @@ export default function ComplexTable() {
         {/* FILTER BAR */}
         <div className="mt-8 flex flex-col sm:flex-row gap-4">
           <div className="w-full sm:w-64 relative">
-            <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-white"/>
+            <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"/>
             <input
               type="text"
               placeholder="Search menu..."
-              className="w-full h-12 pl-10 pr-3 rounded-md bg-lightPrimary text-sm placeholder-gray-400 dark:bg-navy-900 dark:placeholder-gray-500"
+              className="w-full h-12 pl-10 pr-3 rounded-md bg-lightPrimary text-sm placeholder-gray-400
+                         dark:bg-navy-900 dark:text-white dark:placeholder-gray-500"
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
             />
@@ -298,7 +341,7 @@ export default function ComplexTable() {
                       key={h.id}
                       colSpan={h.colSpan}
                       onClick={h.column.getToggleSortingHandler()}
-                      className="border-b border-gray-200 dark:border-navy-700 px-4 py-2 text-xs text-gray-600 dark:text-white text-left cursor-pointer"
+                      className="border-b px-4 py-2 text-xs font-bold text-gray-600 dark:text-gray-300 cursor-pointer"
                     >
                       {flexRender(h.column.columnDef.header, h.getContext())}
                     </th>
@@ -309,7 +352,10 @@ export default function ComplexTable() {
             <tbody>
               {rows.length > 0 ? (
                 rows.map(row => (
-                  <tr key={row.id}>
+                  <tr
+                    key={row.id}
+                    className="hover:bg-gray-50 dark:hover:bg-navy-700 cursor-pointer"
+                  >
                     {row.getVisibleCells().map(cell => (
                       <td key={cell.id} className="px-4 py-3">
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -319,7 +365,7 @@ export default function ComplexTable() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={headerGroups[0].headers.length} className="text-center py-8 text-gray-500">
+                  <td colSpan={headerGroups[0].headers.length} className="py-8 text-center text-gray-500 dark:text-gray-400">
                     No items found
                   </td>
                 </tr>
@@ -336,75 +382,62 @@ export default function ComplexTable() {
           onClick={closeEditModal}
         >
           <div
-            className="relative z-60 bg-white dark:bg-navy-900 shadow-lg rounded-lg p-6 w-full max-w-lg"
+            className="relative bg-white dark:bg-navy-900 shadow-lg rounded-lg p-6 w-full max-w-lg"
             onClick={e => e.stopPropagation()}
           >
             <h2 className="text-lg font-bold mb-4 dark:text-white">Edit Item</h2>
             <div className="space-y-4">
               {/* Name */}
               <div>
-                <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-white">
-                  Name
-                </label>
+                <label className="block text-sm font-medium mb-1 dark:text-white">Name</label>
                 <input
                   type="text"
                   value={formValues.name}
                   onChange={e => handleFormChange("name", e.target.value)}
-                  className="w-full h-10 px-3 border rounded bg-white dark:bg-navy-800 text-gray-900 dark:text-white"
+                  className="w-full h-10 px-3 border rounded bg-white dark:bg-navy-800 dark:text-white"
                 />
               </div>
 
               {/* Description */}
               <div>
-                <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-white">
-                  Description
-                </label>
+                <label className="block text-sm font-medium mb-1 dark:text-white">Description</label>
                 <textarea
                   value={formValues.description}
                   onChange={e => handleFormChange("description", e.target.value)}
-                  className="w-full px-3 py-2 border rounded bg-white dark:bg-navy-800 text-gray-900 dark:text-white"
+                  className="w-full px-3 py-2 border rounded bg-white dark:bg-navy-800 dark:text-white"
                 />
               </div>
 
               {/* Category */}
-          <div>
-  <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-white">
-    Category
-  </label>
- <Select
-      value={{ value: formValues.categoryName, label: formValues.categoryName }}
-      onChange={opt => handleFormChange("categoryName", opt.value)}
-      options={options}
-      menuPlacement="bottom"       // force open downward
-      styles={{
-        menu: base => ({
-          ...base,
-          marginTop: 0,            // no extra gap
-        }),
-        menuList: base => ({
-          ...base,
-          maxHeight: 200,          // px, adjust as you like
-          overflowY: "auto",
-        }),
-      }}
-    />
-</div>
-
+              <div>
+                <label className="block text-sm font-medium mb-1 dark:text-white">Category</label>
+                <Select
+                  value={{ value: formValues.categoryName, label: formValues.categoryName }}
+                  onChange={opt => handleFormChange("categoryName", opt.value)}
+                  options={options}
+                  menuPlacement="bottom"
+                  styles={selectStyles}                 // apply dark-friendly styles
+                />
+              </div>
 
               {/* Type */}
               <div>
-                <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-white">
-                  Type
-                </label>
+                <label className="block text-sm font-medium mb-1 dark:text-white">Type</label>
                 <select
                   value={formValues.type}
                   onChange={e => handleFormChange("type", e.target.value)}
-                  className="w-full h-10 px-3 border rounded bg-white dark:bg-navy-800 text-gray-900 dark:text-white"
+                  className="w-full h-10 px-3 border rounded bg-white dark:bg-navy-800 dark:text-white"
                 >
                   <option value="VEG">VEG</option>
                   <option value="NON_VEG">NON VEG</option>
                 </select>
               </div>
+
+              {/* Image Uploader */}
+              <ImageUploader
+                imageUrls={formValues.imageUrls}
+                onChange={urls => setFormValues(fv => ({ ...fv, imageUrls: urls }))}
+              />
 
               {error && <div className="text-red-500 text-sm">{error}</div>}
 
@@ -436,13 +469,11 @@ export default function ComplexTable() {
           onClick={closeConfirm}
         >
           <div
-            className="bg-white dark:bg-navy-900 rounded-lg p-6 w-full max-w-sm border border-gray-200 dark:border-navy-700 shadow-md"
+            className="bg-white dark:bg-navy-900 rounded-lg p-6 w-full max-w-sm shadow-md"
             onClick={e => e.stopPropagation()}
           >
-            <h3 className="text-lg font-semibold dark:text-white">
-              Confirm Status Change
-            </h3>
-            <p className="mt-2 text-gray-700 dark:text-gray-300">
+            <h3 className="text-lg font-semibold dark:text-white">Confirm Status Change</h3>
+            <p className="mt-2 dark:text-gray-300">
               Are you sure you want to{" "}
               <strong>
                 {confirmState.newStatus ? "activate" : "deactivate"}{" "}
@@ -464,9 +495,7 @@ export default function ComplexTable() {
               >
                 {confirmState.loading
                   ? "Saving..."
-                  : `Yes, ${
-                      confirmState.newStatus ? "Activate" : "Deactivate"
-                    }`}
+                  : `Yes, ${confirmState.newStatus ? "Activate" : "Deactivate"}`}
               </button>
             </div>
           </div>
