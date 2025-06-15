@@ -35,7 +35,7 @@ export default function ComplexTable() {
   const [error, setError] = useState(null);
   const [sorting, setSorting] = useState([]);
 
-  // categories list
+  // categories list (for filter and modal)
   const [categories, setCategories] = useState([]);
 
   // modal & form state
@@ -44,14 +44,14 @@ export default function ComplexTable() {
   const [formValues, setFormValues] = useState({
     name: "",
     description: "",
-    categoryId: "",
+    categoryName: "",
     type: "",
   });
   const [saving, setSaving] = useState(false);
 
   // load data & categories
   useEffect(() => {
-    const fetchData = async () => {
+    async function fetchData() {
       setLoading(true);
       try {
         const menusRes = await getAllMenusByRestaurantId(restaurantId);
@@ -64,7 +64,7 @@ export default function ComplexTable() {
       } finally {
         setLoading(false);
       }
-    };
+    }
     fetchData();
   }, [restaurantId]);
 
@@ -95,12 +95,13 @@ export default function ComplexTable() {
     setFormValues({
       name: item.name || "",
       description: item.description || "",
-      categoryId: item.categoryId || "",
+      categoryName: item.categoryName || "",
       type: item.type || "",
     });
     setError(null);
     setIsModalOpen(true);
   };
+
   const closeModal = () => {
     setIsModalOpen(false);
     setEditingItem(null);
@@ -116,17 +117,21 @@ export default function ComplexTable() {
     if (!editingItem) return;
     setSaving(true);
     try {
+      // find the ID corresponding to the selected name
+      const chosenCategory = categories.find(
+        (c) => c.name === formValues.categoryName
+      );
+      const payload = {
+        name: formValues.name,
+        description: formValues.description,
+        categoryId: chosenCategory?.id || "",
+        type: formValues.type,
+        imageUrls: editingItem.imageUrls,
+      };
       const updatedResp = await updateItemByRestaurantId(
         restaurantId,
         editingItem.id,
-        {
-          name: formValues.name,
-          description: formValues.description,
-          categoryId: formValues.categoryId,
-          type: formValues.type,
-          // preserve existing images
-          imageUrls: editingItem.imageUrls,
-        }
+        payload
       );
       const updatedItem = updatedResp.data;
       setData((prev) =>
@@ -270,41 +275,30 @@ export default function ComplexTable() {
         <div className="mt-8 flex flex-col sm:flex-row items-start sm:items-center gap-y-2 sm:gap-x-4">
           {/* Search */}
           <div className="w-full sm:w-64 relative">
-            <FiSearch
-              className="
-                pointer-events-none
-                absolute left-3
-                top-1/2 transform -translate-y-1/2
-                h-5 w-5
-                text-gray-400 dark:text-white
-              "
-            />
+            <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-white" />
             <input
               type="text"
               placeholder="Search menu..."
-              className="
-                w-full h-12 pl-10 pr-3
-                rounded-md bg-lightPrimary
-                text-sm font-medium text-navy-700
-                outline-none placeholder-gray-400
-                dark:bg-navy-900 dark:text-white dark:placeholder-gray-500
-              "
+              className="w-full h-12 pl-10 pr-3 rounded-md bg-lightPrimary text-sm font-medium text-navy-700 outline-none placeholder-gray-400 dark:bg-navy-900 dark:text-white dark:placeholder-gray-500"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
 
           {/* Category Filter */}
-          <div className="w-full sm:w-64 sm:mt-0 mt-2">
+          <div className="w-full sm:w-64">
             <Dropdown
-              options={["Select all category", ...categories.map((c) => c.name)]}
+              options={[
+                "Select all category",
+                ...categories.map((c) => c.name),
+              ]}
               selectedOption={selectedFilter}
               setSelectedOption={setSelectedFilter}
             />
           </div>
 
           {/* Status Filter */}
-          <div className="w-full sm:w-64 sm:mt-0 mt-2">
+          <div className="w-full sm:w-64">
             <Dropdown
               options={["Select all status", "Active", "Inactive"]}
               selectedOption={selectedStatus}
@@ -324,13 +318,13 @@ export default function ComplexTable() {
                       key={h.id}
                       colSpan={h.colSpan}
                       onClick={h.column.getToggleSortingHandler()}
-                      className="
-                        cursor-pointer border-b-[1px] border-gray-200
-                        pt-4 pb-2 pr-4 text-start
-                      "
+                      className="cursor-pointer border-b-[1px] border-gray-200 pt-4 pb-2 pr-4 text-start"
                     >
                       <div className="items-center justify-between text-xs text-gray-200">
-                        {flexRender(h.column.columnDef.header, h.getContext())}
+                        {flexRender(
+                          h.column.columnDef.header,
+                          h.getContext()
+                        )}
                       </div>
                     </th>
                   ))}
@@ -346,7 +340,10 @@ export default function ComplexTable() {
                         key={cell.id}
                         className="min-w-[150px] border-white/0 py-3 pr-4"
                       >
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
                       </td>
                     ))}
                   </tr>
@@ -410,15 +407,14 @@ export default function ComplexTable() {
                   Category
                 </label>
                 <select
-                  value={formValues.categoryId}
+                  value={formValues.categoryName}
                   onChange={(e) =>
-                    handleFormChange("categoryId", e.target.value)
+                    handleFormChange("categoryName", e.target.value)
                   }
                   className="w-full h-10 px-3 border rounded"
                 >
-                  <option value="">Select category</option>
                   {categories.map((c) => (
-                    <option key={c.id} value={c.id}>
+                    <option key={c.id} value={c.name}>
                       {c.name}
                     </option>
                   ))}
@@ -430,9 +426,7 @@ export default function ComplexTable() {
                 <label className="block text-sm font-medium mb-1">Type</label>
                 <select
                   value={formValues.type}
-                  onChange={(e) =>
-                    handleFormChange("type", e.target.value)
-                  }
+                  onChange={(e) => handleFormChange("type", e.target.value)}
                   className="w-full h-10 px-3 border rounded"
                 >
                   <option value="VEG">VEG</option>
