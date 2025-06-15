@@ -159,7 +159,8 @@ export default function ComplexTable() {
           item.categoryName.toLowerCase().includes(q) ||
           item.type.toLowerCase().includes(q);
         const matchCat =
-          selectedFilter === "Select all category" || item.categoryName === selectedFilter;
+          selectedFilter === "Select all category" ||
+          item.categoryName === selectedFilter;
         const matchStatus =
           selectedStatus === "Select all status" ||
           (selectedStatus === "Active" && item.isEnabled) ||
@@ -172,19 +173,13 @@ export default function ComplexTable() {
   if (loading) return <div className="mt-5">Loading...</div>;
   if (error) return <div className="mt-5 text-red-500">{error}</div>;
 
+  const headerGroups = table.getHeaderGroups();
+  const rows = table.getRowModel().rows;
+
   return (
     <Card extra="h-[600px] px-10 pb-10 sm:overflow-x-auto">
-      {/* --------------- */}
-      {/* RESPONSIVE FILTER BAR */}
-      {/* --------------- */}
-      <div
-        className="
-        mt-8
-        flex flex-col sm:flex-row
-        items-start sm:items-center
-        gap-y-2 sm:gap-x-4
-      "
-      >
+      {/* FILTER BAR */}
+      <div className="mt-8 flex flex-col sm:flex-row items-start sm:items-center gap-y-2 sm:gap-x-4">
         {/* Search */}
         <div className="w-full sm:w-64 relative">
           <FiSearch
@@ -200,14 +195,10 @@ export default function ComplexTable() {
             type="text"
             placeholder="Search menu..."
             className="
-              w-full
-              h-12
-              pl-10 pr-3
-              rounded-md
-              bg-lightPrimary
+              w-full h-12 pl-10 pr-3
+              rounded-md bg-lightPrimary
               text-sm font-medium text-navy-700
-              outline-none
-              placeholder-gray-400
+              outline-none placeholder-gray-400
               dark:bg-navy-900 dark:text-white dark:placeholder-gray-500
             "
             value={searchQuery}
@@ -234,13 +225,11 @@ export default function ComplexTable() {
         </div>
       </div>
 
-      {/* ------- */}
       {/* TABLE */}
-      {/* ------- */}
       <div className="mt-8 overflow-x-scroll xl:overflow-x-auto">
         <table className="w-full">
           <thead>
-            {table.getHeaderGroups().map((hg) => (
+            {headerGroups.map((hg) => (
               <tr key={hg.id} className="!border-px !border-gray-400">
                 {hg.headers.map((h) => (
                   <th
@@ -261,18 +250,29 @@ export default function ComplexTable() {
             ))}
           </thead>
           <tbody>
-            {table.getRowModel().rows.map((row) => (
-              <tr key={row.id}>
-                {row.getVisibleCells().map((cell) => (
-                  <td
-                    key={cell.id}
-                    className="min-w-[150px] border-white/0 py-3 pr-4"
-                  >
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </td>
-                ))}
+            {rows.length > 0 ? (
+              rows.map((row) => (
+                <tr key={row.id}>
+                  {row.getVisibleCells().map((cell) => (
+                    <td
+                      key={cell.id}
+                      className="min-w-[150px] border-white/0 py-3 pr-4"
+                    >
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </td>
+                  ))}
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td
+                  colSpan={headerGroups[0].headers.length}
+                  className="text-center py-8 text-gray-500"
+                >
+                  No items found
+                </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
       </div>

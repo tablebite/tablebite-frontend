@@ -1,5 +1,5 @@
 // Dropdown.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { FiChevronDown } from "react-icons/fi";
 
 export default function Dropdown({
@@ -8,6 +8,7 @@ export default function Dropdown({
   setSelectedOption,
 }) {
   const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef(null);
 
   const toggleDropdown = () => setIsOpen((o) => !o);
   const handleOptionClick = (opt) => {
@@ -15,8 +16,21 @@ export default function Dropdown({
     setIsOpen(false);
   };
 
+  // Close when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   return (
-    <div className="relative w-full">
+    <div ref={containerRef} className="relative w-full">
       <button
         onClick={toggleDropdown}
         className="
