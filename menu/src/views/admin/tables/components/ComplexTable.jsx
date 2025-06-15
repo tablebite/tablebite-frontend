@@ -49,6 +49,14 @@ export default function ComplexTable() {
   });
   const [saving, setSaving] = useState(false);
 
+  // lock background scroll when modal is open
+  useEffect(() => {
+    document.body.style.overflow = isModalOpen ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isModalOpen]);
+
   // load data & categories
   useEffect(() => {
     async function fetchData() {
@@ -149,7 +157,9 @@ export default function ComplexTable() {
     columnHelper.accessor("imageUrls", {
       id: "imageUrls",
       header: () => (
-        <p className="text-sm font-bold text-gray-600 dark:text-white">IMAGE</p>
+        <p className="text-sm font-bold text-gray-600 dark:text-white">
+          IMAGE
+        </p>
       ),
       cell: (info) => {
         const img = info.row.original.imageUrls?.[0];
@@ -170,7 +180,9 @@ export default function ComplexTable() {
     columnHelper.accessor("name", {
       id: "name",
       header: () => (
-        <p className="text-sm font-bold text-gray-600 dark:text-white">NAME</p>
+        <p className="text-sm font-bold text-gray-600 dark:text-white">
+          NAME
+        </p>
       ),
       cell: (info) => (
         <p className="text-sm font-bold text-navy-700 dark:text-white">
@@ -194,7 +206,9 @@ export default function ComplexTable() {
     columnHelper.accessor("type", {
       id: "type",
       header: () => (
-        <p className="text-sm font-bold text-gray-600 dark:text-white">TYPE</p>
+        <p className="text-sm font-bold text-gray-600 dark:text-white">
+          TYPE
+        </p>
       ),
       cell: (info) => (
         <p className="text-sm font-bold text-navy-700 dark:text-white">
@@ -328,29 +342,21 @@ export default function ComplexTable() {
               ))}
             </thead>
             <tbody>
-              {rows.length > 0 ? (
-                rows.map((row) => (
-                  <tr key={row.id}>
-                    {row.getVisibleCells().map((cell) => (
-                      <td
-                        key={cell.id}
-                        className="min-w-[150px] border-white/0 py-3 pr-4"
-                      >
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </td>
-                    ))}
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td
-                    colSpan={headerGroups[0].headers.length}
-                    className="text-center py-8 text-gray-500"
-                  >
-                    No items found
-                  </td>
+              {rows.map((row) => (
+                <tr key={row.id}>
+                  {row.getVisibleCells().map((cell) => (
+                    <td
+                      key={cell.id}
+                      className="min-w-[150px] border-white/0 py-3 pr-4"
+                    >
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
+                    </td>
+                  ))}
                 </tr>
-              )}
+              ))}
             </tbody>
           </table>
         </div>
@@ -391,9 +397,7 @@ export default function ComplexTable() {
                 </label>
                 <textarea
                   value={formValues.description}
-                  onChange={(e) =>
-                    handleFormChange("description", e.target.value)
-                  }
+                  onChange={(e) => handleFormChange("description", e.target.value)}
                   className="w-full px-3 py-2 border rounded bg-white dark:bg-navy-800 text-gray-900 dark:text-white"
                 />
               </div>
