@@ -117,7 +117,6 @@ export default function ComplexTable() {
     if (!editingItem) return;
     setSaving(true);
     try {
-      // find the ID corresponding to the selected name
       const chosenCategory = categories.find(
         (c) => c.name === formValues.categoryName
       );
@@ -321,10 +320,7 @@ export default function ComplexTable() {
                       className="cursor-pointer border-b-[1px] border-gray-200 pt-4 pb-2 pr-4 text-start"
                     >
                       <div className="items-center justify-between text-xs text-gray-200">
-                        {flexRender(
-                          h.column.columnDef.header,
-                          h.getContext()
-                        )}
+                        {flexRender(h.column.columnDef.header, h.getContext())}
                       </div>
                     </th>
                   ))}
@@ -340,10 +336,7 @@ export default function ComplexTable() {
                         key={cell.id}
                         className="min-w-[150px] border-white/0 py-3 pr-4"
                       >
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </td>
                     ))}
                   </tr>
@@ -373,23 +366,27 @@ export default function ComplexTable() {
             className="relative z-60 bg-white dark:bg-navy-900 shadow-lg rounded-lg p-6 w-full max-w-lg"
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 className="text-lg font-bold mb-4">Edit Item</h2>
+            <h2 className="text-lg font-bold mb-4 dark:text-white">
+              Edit Item
+            </h2>
 
             <div className="flex flex-col space-y-4">
               {/* Name */}
               <div>
-                <label className="block text-sm font-medium mb-1">Name</label>
+                <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-white">
+                  Name
+                </label>
                 <input
                   type="text"
                   value={formValues.name}
                   onChange={(e) => handleFormChange("name", e.target.value)}
-                  className="w-full h-10 px-3 border rounded"
+                  className="w-full h-10 px-3 border rounded bg-white dark:bg-navy-800 text-gray-900 dark:text-white"
                 />
               </div>
 
               {/* Description */}
               <div>
-                <label className="block text-sm font-medium mb-1">
+                <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-white">
                   Description
                 </label>
                 <textarea
@@ -397,13 +394,13 @@ export default function ComplexTable() {
                   onChange={(e) =>
                     handleFormChange("description", e.target.value)
                   }
-                  className="w-full px-3 py-2 border rounded"
+                  className="w-full px-3 py-2 border rounded bg-white dark:bg-navy-800 text-gray-900 dark:text-white"
                 />
               </div>
 
               {/* Category */}
               <div>
-                <label className="block text-sm font-medium mb-1">
+                <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-white">
                   Category
                 </label>
                 <select
@@ -411,7 +408,7 @@ export default function ComplexTable() {
                   onChange={(e) =>
                     handleFormChange("categoryName", e.target.value)
                   }
-                  className="w-full h-10 px-3 border rounded"
+                  className="w-full h-10 px-3 border rounded bg-white dark:bg-navy-800 text-gray-900 dark:text-white"
                 >
                   {categories.map((c) => (
                     <option key={c.id} value={c.name}>
@@ -423,11 +420,13 @@ export default function ComplexTable() {
 
               {/* Type */}
               <div>
-                <label className="block text-sm font-medium mb-1">Type</label>
+                <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-white">
+                  Type
+                </label>
                 <select
                   value={formValues.type}
                   onChange={(e) => handleFormChange("type", e.target.value)}
-                  className="w-full h-10 px-3 border rounded"
+                  className="w-full h-10 px-3 border rounded bg-white dark:bg-navy-800 text-gray-900 dark:text-white"
                 >
                   <option value="VEG">VEG</option>
                   <option value="NON_VEG">NON VEG</option>
@@ -440,7 +439,7 @@ export default function ComplexTable() {
               <div className="flex justify-end space-x-4 mt-4">
                 <button
                   onClick={closeModal}
-                  className="px-4 py-2 bg-gray-200 rounded"
+                  className="px-4 py-2 bg-gray-200 rounded dark:bg-navy-700 dark:text-white"
                 >
                   Cancel
                 </button>
