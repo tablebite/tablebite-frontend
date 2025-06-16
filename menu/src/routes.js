@@ -36,13 +36,13 @@ const routes = [
     component: <Table />,
     secondary: true,
   },
-  {
-    name: "Data Tables",
-    layout: "/admin",
-    icon: <MdBarChart className="h-6 w-6" />,
-    path: "data-tables",
-    component: <DataTables />,
-  },
+  // {
+  //   name: "Data Tables",
+  //   layout: "/admin",
+  //   icon: <MdBarChart className="h-6 w-6" />,
+  //   path: "data-tables",
+  //   component: <DataTables />,
+  // },
   {
     name: "Profile",
     layout: "/admin",
@@ -50,13 +50,13 @@ const routes = [
     icon: <MdPerson className="h-6 w-6" />,
     component: <Profile />,
   },
-  {
-    name: "Sign In",
-    layout: "/auth",
-    path: "sign-in",
-    icon: <MdLock className="h-6 w-6" />,
-    component: <SignIn />,
-  }
+  // {
+  //   name: "Sign In",
+  //   layout: "/auth",
+  //   path: "sign-in",
+  //   icon: <MdLock className="h-6 w-6" />,
+  //   component: <SignIn />,
+  // }
  
 ];
 export default routes;

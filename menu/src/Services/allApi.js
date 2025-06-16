@@ -90,3 +90,15 @@ export const deleteItemById = async (
     `/admin/api/v1/items/id/${itemId}?${params}`
   );
 };
+
+
+// admin api: add single item
+export const addItem = async (
+  addItemRequest
+) => {
+  return await catelogAdminAPI(
+    "POST",
+    `/admin/api/v1/items`,
+    addItemRequest
+  );
+};
