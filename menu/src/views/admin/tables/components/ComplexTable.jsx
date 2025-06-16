@@ -321,7 +321,7 @@ export default function ComplexTable() {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <div className="w-full sm:w-64 relative z-20">
+          <div className="w-full sm:w-64 relative z-30">
             <Dropdown
               options={["Select all category", ...categories.map((c) => c.name)]}
               selectedOption={selectedFilter}
