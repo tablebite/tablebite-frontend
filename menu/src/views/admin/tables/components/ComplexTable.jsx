@@ -315,7 +315,7 @@ export default function ComplexTable() {
 
   return (
     <>
-      <Card extra="h-[600px] px-10 pb-10 overflow-y-scroll">
+      <Card extra="h-[600px] px-10 pb-10">
         <div className="mt-8 flex flex-col sm:flex-row gap-4">
           <div className="w-full sm:w-64 relative">
             <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
