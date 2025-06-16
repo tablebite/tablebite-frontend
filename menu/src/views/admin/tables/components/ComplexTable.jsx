@@ -1,5 +1,3 @@
-// src/components/ComplexTable.jsx
-
 import React, { useState, useEffect } from "react";
 import Select from "react-select";
 import Card from "components/card";
@@ -75,6 +73,7 @@ export default function ComplexTable() {
     categoryName: "",
     type: "",
     imageUrls: [],
+    vegNonVeg: "Select Veg/Non-Veg", // Default to "Select Veg/Non-Veg"
   });
   const [saving, setSaving] = useState(false);
 
@@ -131,10 +130,17 @@ export default function ComplexTable() {
           selectedStatus === "Select all status" ||
           (selectedStatus === "Active" && item.isEnabled) ||
           (selectedStatus === "Inactive" && !item.isEnabled);
-        return matchText && matchCat && matchStatus;
+
+        // Check if Veg/Non-Veg matches the item type
+        const matchVegNonVeg =
+          formValues.vegNonVeg === "Select Veg/Non-Veg" || // Allow both if no selection is made
+          (formValues.vegNonVeg === "Veg" && item.type === "VEG") ||
+          (formValues.vegNonVeg === "Non-Veg" && item.type === "NON_VEG");
+
+        return matchText && matchCat && matchStatus && matchVegNonVeg;
       })
     );
-  }, [searchQuery, data, selectedFilter, selectedStatus]);
+  }, [searchQuery, data, selectedFilter, selectedStatus, formValues.vegNonVeg]);
 
   // open/close edit modal
   const openEditModal = (item) => {
@@ -145,10 +151,12 @@ export default function ComplexTable() {
       categoryName: item.categoryName || "",
       type: item.type || "",
       imageUrls: item.imageUrls || [],
+      vegNonVeg: item.vegNonVeg || "Select Veg/Non-Veg", // Default to "Select Veg/Non-Veg" if not provided
     });
     setError(null);
     setIsEditOpen(true);
   };
+
   const closeEditModal = () => {
     setIsEditOpen(false);
     setEditingItem(null);
@@ -172,6 +180,7 @@ export default function ComplexTable() {
       loading: false,
     });
   };
+
   const handleConfirmToggle = async () => {
     const { item, newStatus } = confirmState;
     setConfirmState((s) => ({ ...s, loading: true }));
@@ -262,7 +271,7 @@ export default function ComplexTable() {
       ),
     }),
     columnHelper.accessor("isEnabled", {
-      id: "isEnabled",  
+      id: "isEnabled",
       header: () => <p className="text-sm font-bold">STATUS</p>,
       cell: (info) => {
         const row = info.row.original;
@@ -306,10 +315,8 @@ export default function ComplexTable() {
 
   return (
     <>
-      {/* fixed-height card with always-on scrollbar */}
-       <Card extra="h-[600px] px-10 pb-10 overflow-y-scroll">
-        {/* FILTER BAR */}
-         <div className="mt-8 flex flex-col sm:flex-row gap-4">
+      <Card extra="h-[600px] px-10 pb-10 overflow-y-scroll">
+        <div className="mt-8 flex flex-col sm:flex-row gap-4">
           <div className="w-full sm:w-64 relative">
             <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
@@ -335,57 +342,64 @@ export default function ComplexTable() {
               setSelectedOption={setSelectedStatus}
             />
           </div>
+          {/* Veg/Non-Veg Dropdown */}
+          <div className="w-full sm:w-64 relative z-20">
+            <Dropdown
+              options={["Select Veg/Non-Veg", "Veg", "Non-Veg"]}
+              selectedOption={formValues.vegNonVeg}
+              setSelectedOption={(value) => handleFormChange("vegNonVeg", value)} // Handle change
+            />
+          </div>
         </div>
 
-        {/* TABLE (now table-fixed!) */}
-    <div className="mt-8 overflow-x-auto">
-      <table className="w-full table-fixed">
-        <thead>
-          {headerGroups.map((hg) => (
-            <tr key={hg.id}>
-              {hg.headers.map((h) => (
-                <th
-                  key={h.id}
-                  colSpan={h.colSpan}
-                  onClick={h.column.getToggleSortingHandler()}
+        <div className="mt-8 overflow-x-auto">
+          <table className="w-full table-fixed">
+            <thead>
+              {headerGroups.map((hg) => (
+                <tr key={hg.id}>
+                  {hg.headers.map((h) => (
+                    <th
+                      key={h.id}
+                      colSpan={h.colSpan}
+                      onClick={h.column.getToggleSortingHandler()}
                       className="sticky top-0 border-b border-gray-200 dark:border-navy-700
-                            px-4 py-2 text-xs text-gray-600 dark:text-white text-left cursor-pointer
+                                 px-4 py-2 text-xs text-gray-600 dark:text-white text-left cursor-pointer
                                  bg-white dark:bg-navy-900 z-10"
-                >
-                  {flexRender(h.column.columnDef.header, h.getContext())}
-                </th>
+                    >
+                      {flexRender(h.column.columnDef.header, h.getContext())}
+                    </th>
+                  ))}
+                </tr>
               ))}
-            </tr>
-          ))}
-        </thead>
-        <tbody>
-          {rows.length > 0 ? (
-            rows.map((row) => (
-              <tr
-                key={row.id}
-                className="hover:bg-gray-50 dark:hover:bg-navy-700 cursor-pointer"
-              >
-                {row.getVisibleCells().map((cell) => (
+            </thead>
+            <tbody>
+              {rows.length > 0 ? (
+                rows.map((row) => (
+                  <tr
+                    key={row.id}
+                    className="hover:bg-gray-50 dark:hover:bg-navy-700 cursor-pointer"
+                  >
+                    {row.getVisibleCells().map((cell) => (
                       <td key={cell.id} className="px-4 py-3 align-top">
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </td>
+                    ))}
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td
+                    colSpan={headerGroups[0].headers.length}
+                    className="py-8 text-center text-gray-500 dark:text-gray-400"
+                  >
+                    No items found
                   </td>
-                ))}
-              </tr>
-            ))
-          ) : (
-            <tr>
-              <td
-                colSpan={headerGroups[0].headers.length}
-                className="py-8 text-center text-gray-500 dark:text-gray-400"
-              >
-                No items found
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
-    </div>
-  </Card>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </Card>
 
       {/* EDIT MODAL */}
       {isEditOpen && (
