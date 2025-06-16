@@ -328,14 +328,14 @@ export default function ComplexTable() {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <div className="w-full sm:w-64 relative z-30">
+          <div className="w-full sm:w-64 relative z-40">
             <Dropdown
               options={["Select all category", ...categories.map((c) => c.name)]}
               selectedOption={selectedFilter}
               setSelectedOption={setSelectedFilter}
             />
           </div>
-          <div className="w-full sm:w-64 relative z-20">
+          <div className="w-full sm:w-64 relative z-30">
             <Dropdown
               options={["Select all status", "Active", "Inactive"]}
               selectedOption={selectedStatus}
@@ -534,7 +534,7 @@ export default function ComplexTable() {
               <button
                 onClick={handleConfirmToggle}
                 disabled={confirmState.loading}
-                className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
+                className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50 z-5"
               >
                 {confirmState.loading
                   ? "Saving..."
