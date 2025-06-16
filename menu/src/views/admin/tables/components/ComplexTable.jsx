@@ -307,7 +307,7 @@ export default function ComplexTable() {
     getSortedRowModel: getSortedRowModel(),
   });
 
-  if (loading) return <div className="mt-5">Loading...</div>;
+  if (loading) return <div className="mt-5 dark:text-white ">Loading...</div>;
 
   const headerGroups = table.getHeaderGroups();
   const rows = table.getRowModel().rows;
