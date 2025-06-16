@@ -9,7 +9,8 @@ import {
   toggleItemStatus,
   getAllCategoriessByRestaurantId,
   updateItemById,
-  deleteItemById
+  deleteItemById,
+  addItem
 } from "../../../../Services/allApi";
 
 
@@ -25,7 +26,6 @@ import {
 import { FiSearch, FiEdit } from "react-icons/fi";
 
 const columnHelper = createColumnHelper();
-
 export default function ComplexTable() {
   const restaurantId = "000000000001";
 
@@ -56,6 +56,7 @@ export default function ComplexTable() {
   // EDIT MODAL
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false); // Add modal state
   const [formValues, setFormValues] = useState({
     name: "",
     description: "",
@@ -82,6 +83,33 @@ export default function ComplexTable() {
       document.body.style.overflow = "";
     };
   }, [isEditOpen, confirmState.isOpen]);
+
+
+const openAddModal = () => {
+  setIsAddModalOpen(true);
+  setFormValues({
+    name: "",
+    description: "",
+    categoryName: categories.length > 0 ? categories[0].name : "", // Default to first category
+    type: "VEG", // Default to "VEG"
+    imageUrls: [],
+    vegNonVeg: formValues.vegNonVeg || "Select Veg/Non-Veg", // Ensure it retains the previous value of Veg/Non-Veg
+  });
+};
+
+
+const closeAddModal = () => {
+  setIsAddModalOpen(false);
+  setFormValues({
+    name: "",
+    description: "",
+    categoryName: "",
+    type: "VEG",
+    imageUrls: [],
+    vegNonVeg: formValues.vegNonVeg || "Select Veg/Non-Veg", // Make sure this matches the dropdown value
+  });
+};
+
 
   // fetch data & categories
   useEffect(() => {
@@ -199,6 +227,8 @@ export default function ComplexTable() {
 };
 
 
+
+
   // form change
   const handleFormChange = (field, value) =>
     setFormValues((fv) => ({ ...fv, [field]: value }));
@@ -242,6 +272,30 @@ const closeDeleteModal = () => {
   setItemToDelete(null);
   setIsDeleteModalOpen(false);
 };
+
+const handleAdd = async () => {
+  setSaving(true);
+  const category = categories.find((cat) => cat.name === formValues.categoryName);
+  const requestBody = {
+    name: formValues.name,
+    description: formValues.description,
+    restaurantId,
+    categoryId: category?.id,
+    type: formValues.type,
+    imageUrls: formValues.imageUrls,
+  };
+
+  try {
+    await addItem(requestBody); // Call the addItem API
+    setData((prevData) => [requestBody, ...prevData]);
+    closeAddModal();
+  } catch (error) {
+    setError("Error adding item");
+  } finally {
+    setSaving(false);
+  }
+};
+
 
   // table columns
   const columns = [
@@ -374,6 +428,17 @@ const closeDeleteModal = () => {
               setSelectedOption={(value) => handleFormChange("vegNonVeg", value)} // Handle change
             />
           </div>
+
+          {/* Add Item Button */}
+          <div className="w-full sm:w-64 relative z-10 flex items-center justify-end">
+          <button
+            onClick={() => openAddModal({})}  // Open the edit modal with empty form for adding new item
+            className="px-4 py-3 bg-blue-600 text-white rounded-xl h-12" // Set height here to match the dropdown height
+          >
+            Add Item
+          </button>
+        </div>
+
         </div>
 
         <div className="mt-8 overflow-x-auto">
@@ -424,6 +489,100 @@ const closeDeleteModal = () => {
           </table>
         </div>
       </Card>
+
+      {isAddModalOpen && (
+          <div
+            className="fixed inset-0 bg-black bg-opacity-75 backdrop-blur-sm z-50 flex items-center justify-center"
+            onClick={closeAddModal}
+          >
+            <div
+              className="relative bg-white dark:bg-navy-900 shadow-lg rounded-lg p-6 w-full max-w-lg"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h2 className="text-lg font-bold mb-4 dark:text-white">Add Item</h2>
+              <div className="space-y-4">
+                {/* Name */}
+                <div>
+                  <label className="block text-sm font-medium mb-1 dark:text-white">Name</label>
+                  <input
+                    type="text"
+                    value={formValues.name}
+                    onChange={(e) => handleFormChange("name", e.target.value)}
+                    className="w-full h-10 px-3 border rounded bg-white dark:bg-navy-800 dark:text-white"
+                  />
+                </div>
+
+                {/* Description */}
+                <div>
+                  <label className="block text-sm font-medium mb-1 dark:text-white">Description</label>
+                  <textarea
+                    value={formValues.description}
+                    onChange={(e) => handleFormChange("description", e.target.value)}
+                    className="w-full px-3 py-2 border rounded bg-white dark:bg-navy-800 dark:text-white"
+                  />
+                </div>
+
+                {/* Category */}
+                <div>
+                  <label className="block text-sm font-medium mb-1 dark:text-white">Category</label>
+                  <select
+                    value={formValues.categoryName}
+                    onChange={(e) => handleFormChange("categoryName", e.target.value)}
+                    className="w-full h-10 px-3 border rounded bg-white dark:bg-navy-800 dark:text-white"
+                  >
+                    {categories.map((cat) => (
+                      <option key={cat.id} value={cat.name}>
+                        {cat.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Type */}
+                <div>
+                  <label className="block text-sm font-medium mb-1 dark:text-white">Type</label>
+                  <select
+                    value={formValues.type}
+                    onChange={(e) => handleFormChange("type", e.target.value)}
+                    className="w-full h-10 px-3 border rounded bg-white dark:bg-navy-800 dark:text-white"
+                  >
+                    <option value="VEG">VEG</option>
+                    <option value="NON_VEG">NON VEG</option>
+                  </select>
+                </div>
+
+              
+
+                {/* Image Uploader */}
+                <ImageUploader
+                  imageUrls={formValues.imageUrls}
+                  onChange={(urls) => setFormValues((fv) => ({ ...fv, imageUrls: urls }))}
+                />
+
+                {error && <div className="text-red-500 text-sm">{error}</div>}
+
+                {/* Actions */}
+                <div className="flex justify-end space-x-4 mt-4">
+                  <button
+                    onClick={closeAddModal}
+                    className="px-4 py-2 bg-gray-200 rounded dark:bg-navy-700 dark:text-white"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleAdd}
+                    disabled={saving}
+                    className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
+                  >
+                    {saving ? "Saving..." : "Save"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+
 
       {/* EDIT MODAL */}
       {isEditOpen && (
