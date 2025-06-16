@@ -307,9 +307,9 @@ export default function ComplexTable() {
   return (
     <>
       {/* fixed-height card with always-on scrollbar */}
-      <Card extra="h-[600px] px-10 pb-10 overflow-y-scroll">
+       <Card extra="h-[600px] px-10 pb-10 overflow-y-scroll">
         {/* FILTER BAR */}
-        <div className="mt-8 flex flex-col sm:flex-row gap-4">
+         <div className="mt-8 flex flex-col sm:flex-row gap-4">
           <div className="w-full sm:w-64 relative">
             <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
@@ -338,54 +338,54 @@ export default function ComplexTable() {
         </div>
 
         {/* TABLE (now table-fixed!) */}
-        <div className="mt-8 overflow-x-auto">
-          <table className="w-full table-fixed">
-            <thead>
-              {headerGroups.map((hg) => (
-                <tr key={hg.id}>
-                  {hg.headers.map((h) => (
-                    <th
-                      key={h.id}
-                      colSpan={h.colSpan}
-                      onClick={h.column.getToggleSortingHandler()}
+    <div className="mt-8 overflow-x-auto">
+      <table className="w-full table-fixed">
+        <thead>
+          {headerGroups.map((hg) => (
+            <tr key={hg.id}>
+              {hg.headers.map((h) => (
+                <th
+                  key={h.id}
+                  colSpan={h.colSpan}
+                  onClick={h.column.getToggleSortingHandler()}
                       className="sticky top-0 border-b border-gray-200 dark:border-navy-700
-                                 px-4 py-2 text-xs text-gray-600 dark:text-white text-left cursor-pointer
+                            px-4 py-2 text-xs text-gray-600 dark:text-white text-left cursor-pointer
                                  bg-white dark:bg-navy-900 z-10"
-                    >
-                      {flexRender(h.column.columnDef.header, h.getContext())}
-                    </th>
-                  ))}
-                </tr>
+                >
+                  {flexRender(h.column.columnDef.header, h.getContext())}
+                </th>
               ))}
-            </thead>
-            <tbody>
-              {rows.length > 0 ? (
-                rows.map((row) => (
-                  <tr
-                    key={row.id}
-                    className="hover:bg-gray-50 dark:hover:bg-navy-700 cursor-pointer"
-                  >
-                    {row.getVisibleCells().map((cell) => (
+            </tr>
+          ))}
+        </thead>
+        <tbody>
+          {rows.length > 0 ? (
+            rows.map((row) => (
+              <tr
+                key={row.id}
+                className="hover:bg-gray-50 dark:hover:bg-navy-700 cursor-pointer"
+              >
+                {row.getVisibleCells().map((cell) => (
                       <td key={cell.id} className="px-4 py-3 align-top">
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </td>
-                    ))}
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td
-                    colSpan={headerGroups[0].headers.length}
-                    className="py-8 text-center text-gray-500 dark:text-gray-400"
-                  >
-                    No items found
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </Card>
+                ))}
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td
+                colSpan={headerGroups[0].headers.length}
+                className="py-8 text-center text-gray-500 dark:text-gray-400"
+              >
+                No items found
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+  </Card>
 
       {/* EDIT MODAL */}
       {isEditOpen && (
@@ -425,22 +425,23 @@ export default function ComplexTable() {
               </div>
 
               {/* Category */}
-              <div className="relative z-20">
+              <div>
                 <label className="block text-sm font-medium mb-1 dark:text-white">
                   Category
                 </label>
-                <Select
-                  value={{ value: formValues.categoryName, label: formValues.categoryName }}
-                  onChange={(opt) => handleFormChange("categoryName", opt.value)}
-                  options={options}
-                  menuPlacement="bottom"
-                  styles={{
-                    ...selectStyles,
-                    menuPortal: (base) => ({ ...base, zIndex: 9999 }),
-                  }}
-                  menuPortalTarget={document.body}
-                />
+                <select
+                  value={formValues.categoryName}
+                  onChange={(e) => handleFormChange("categoryName", e.target.value)}
+                  className="w-full h-10 px-3 border rounded bg-white dark:bg-navy-800 dark:text-white"
+                >
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.name}>
+                      {cat.name}
+                    </option>
+                  ))}
+                </select>
               </div>
+
 
               {/* Type */}
               <div>
