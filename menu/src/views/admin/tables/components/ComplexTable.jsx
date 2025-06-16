@@ -8,8 +8,13 @@ import {
   getAllMenusByRestaurantId,
   toggleItemStatus,
   getAllCategoriessByRestaurantId,
-  updateItemByRestaurantId,
+  updateItemById,
+  deleteItemById
 } from "../../../../Services/allApi";
+
+
+import { FiTrash2 } from "react-icons/fi";  // Import delete icon
+
 import {
   createColumnHelper,
   flexRender,
@@ -29,25 +34,6 @@ export default function ComplexTable() {
     typeof document !== "undefined" &&
     document.documentElement.classList.contains("dark");
 
-  // react-select styles
-  const selectStyles = {
-    control: (base) => ({
-      ...base,
-      backgroundColor: isDark ? "#1e293b" : "#ffffff",
-      borderColor: isDark ? "#334155" : "#d1d5db",
-      color: isDark ? "#f1f5f9" : "#111827",
-    }),
-    singleValue: (base) => ({ ...base, color: isDark ? "#f1f5f9" : "#111827" }),
-    placeholder: (base) => ({ ...base, color: isDark ? "#94a3b8" : "#6b7280" }),
-    menu: (base) => ({ ...base, backgroundColor: isDark ? "#1e293b" : "#ffffff" }),
-    menuList: (base) => ({ ...base, backgroundColor: isDark ? "#1e293b" : "#ffffff" }),
-    option: (base, { isFocused }) => ({
-      ...base,
-      backgroundColor: isFocused ? (isDark ? "#334155" : "#f3f4f6") : "transparent",
-      color: isDark ? "#f1f5f9" : "#111827",
-    }),
-    input: (base) => ({ ...base, color: isDark ? "#f1f5f9" : "#111827" }),
-  };
 
   // DATA & FILTERS
   const [data, setData] = useState([]);
@@ -55,6 +41,9 @@ export default function ComplexTable() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("Select all category");
   const [selectedStatus, setSelectedStatus] = useState("Select all status");
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState(null);
+ 
 
   // LOADING / ERROR / SORTING
   const [loading, setLoading] = useState(true);
@@ -197,6 +186,18 @@ export default function ComplexTable() {
       setConfirmState((s) => ({ ...s, loading: false }));
     }
   };
+  const handleDelete = async () => {
+  if (itemToDelete) {
+    try {
+      await deleteItemById(restaurantId, itemToDelete.id); // Call delete API
+      setData((prevData) => prevData.filter((item) => item.id !== itemToDelete.id)); // Remove deleted item from state
+      closeDeleteModal();
+    } catch (error) {
+      setError("Error deleting item");
+    }
+  }
+};
+
 
   // form change
   const handleFormChange = (field, value) =>
@@ -215,7 +216,7 @@ export default function ComplexTable() {
         type: formValues.type,
         imageUrls: formValues.imageUrls,
       };
-      const resp = await updateItemByRestaurantId(
+      const resp = await updateItemById(
         restaurantId,
         editingItem.id,
         payload
@@ -231,6 +232,16 @@ export default function ComplexTable() {
       setSaving(false);
     }
   };
+
+  const openDeleteModal = (item) => {
+  setItemToDelete(item);
+  setIsDeleteModalOpen(true);
+};
+
+const closeDeleteModal = () => {
+  setItemToDelete(null);
+  setIsDeleteModalOpen(false);
+};
 
   // table columns
   const columns = [
@@ -284,19 +295,31 @@ export default function ComplexTable() {
         );
       },
     }),
+   
     columnHelper.display({
       id: "actions",
       header: () => <p className="text-sm font-bold">ACTIONS</p>,
       cell: ({ row }) => (
-        <button
-          onClick={() => openEditModal(row.original)}
-          className="p-1 hover:bg-gray-100 dark:hover:bg-navy-700 rounded"
-        >
-          <FiEdit className="w-5 h-5 text-blue-500" />
-        </button>
-      ),
-    }),
+    <div className="flex space-x-2">
+      <button
+        onClick={() => openEditModal(row.original)}
+        className="p-1 hover:bg-gray-100 dark:hover:bg-navy-700 rounded"
+      >
+        <FiEdit className="w-5 h-5 text-blue-500" />
+      </button>
+      {/* Delete Button */}
+      <button
+        onClick={() => openDeleteModal(row.original)}
+        className="p-1 hover:bg-gray-100 dark:hover:bg-navy-700 rounded"
+      >
+        <FiTrash2 className="w-5 h-5 text-red-500" />
+      </button>
+    </div>
+  ),
+})
+
   ];
+  
 
   const table = useReactTable({
     data: filteredData,
@@ -306,6 +329,7 @@ export default function ComplexTable() {
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
   });
+
 
   if (loading) return <div className="mt-5 dark:text-white ">Loading...</div>;
 
@@ -502,6 +526,41 @@ export default function ComplexTable() {
           </div>
         </div>
       )}
+      
+{/* DELETE MODAL */}
+{isDeleteModalOpen && (
+  <div
+    className="fixed inset-0 bg-black bg-opacity-75 backdrop-blur-sm z-50 flex items-center justify-center"
+    onClick={closeDeleteModal}
+  >
+    <div
+      className="relative bg-white dark:bg-navy-900 shadow-lg rounded-lg p-6 w-full max-w-sm"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <h3 className="text-lg font-semibold dark:text-white">
+        Confirm Deletion
+      </h3>
+      <p className="mt-2 dark:text-gray-300">
+        Are you sure you want to remove{" "}
+        <strong>{itemToDelete?.name}</strong>?
+      </p>
+      <div className="mt-4 flex justify-end space-x-3">
+        <button
+          onClick={closeDeleteModal}
+          className="px-4 py-2 bg-gray-200 rounded dark:bg-navy-700 dark:text-white"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={handleDelete}
+          className="px-4 py-2 bg-red-600 text-white rounded"
+        >
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+)}
 
       {/* STATUS CONFIRMATION MODAL */}
       {confirmState.isOpen && (

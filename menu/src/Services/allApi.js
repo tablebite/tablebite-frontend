@@ -65,7 +65,7 @@ export const getAllCategoriessByRestaurantId = async(restaurantId)=> {
 }
 
 // admin api: edit single item
-export const updateItemByRestaurantId = async (
+export const updateItemById = async (
   restaurantId,
   itemId,
   updateItemRequest
@@ -75,5 +75,18 @@ export const updateItemByRestaurantId = async (
     "PUT",
     `/admin/api/v1/items/id/${itemId}?${params}`,
     updateItemRequest
+  );
+};
+
+
+// admin api: delete single item
+export const deleteItemById = async (
+  restaurantId,
+  itemId
+) => {
+  const params = new URLSearchParams({ restaurantId }).toString();
+  return await catelogAdminAPI(
+    "DELETE",
+    `/admin/api/v1/items/id/${itemId}?${params}`
   );
 };
