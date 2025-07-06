@@ -122,14 +122,14 @@ useEffect(() => {
         ]);
 
         if (isMounted && catRes?.data) {
-          const cats = catRes.data.map(cat => cat.name);
+          const cats = catRes.data.map(cat => cat?.name);
           setCategories(cats);
         }
 
         if (isMounted && menuRes?.data) {
           setItems(menuRes.data.map(item => ({
             id: item.id,
-            name: item.name,
+            name: item?.name,
             description: item.description || "",
             price: item.variants?.[0]?.salePrice ?? item.variants?.[0]?.listPrice ?? 0,
             imageUrl: (item.imageUrls && item.imageUrls.length > 0)
@@ -211,7 +211,7 @@ useEffect(() => {
       const searchLower = debouncedSearch.trim().toLowerCase();
       const matchesSearch = (
         !searchLower ||
-        item.name.toLowerCase().includes(searchLower) ||
+        item?.name.toLowerCase().includes(searchLower) ||
         item.description.toLowerCase().includes(searchLower) ||
         item.category.toLowerCase().includes(searchLower)
       );
@@ -441,7 +441,7 @@ useEffect(() => {
           Find delicious items from
         </h1>
         <h2 className="font-bold text-2xl mt-1 m-0" style={{ color: themeColor }}>
-          {restaurant ? restaurant.name : 'Loading...'}
+          {restaurant ? restaurant?.name : 'Loading...'}
         </h2>
       </div>
     )}
@@ -580,7 +580,7 @@ useEffect(() => {
                       >
                         <div className="flex-1 flex flex-col pr-4">
                           <h1 className="font-semibold text-lg text-gray-900 select-none cursor-default">
-                            {item.name}
+                            {item?.name}
                           </h1>
                           <h2 className="font-semibold text-md text-gray-800 mb-1 select-none cursor-default">
                             ₹ {item.price}
@@ -606,7 +606,7 @@ useEffect(() => {
                         <div className="relative w-36 h-36 mb-3">
                           <img
                             src={item.imageUrl}
-                            alt={item.name}
+                            alt={item?.name}
                             className="w-full h-full object-cover rounded-2xl shadow-md"
                             loading="lazy"
                           />
@@ -810,7 +810,7 @@ useEffect(() => {
                   <img
                     key={idx}
                     src={img}
-                    alt={`${selectedItem.name} image ${idx + 1}`}
+                    alt={`${selectedItem?.name} image ${idx + 1}`}
                     className="h-40 w-auto rounded-lg object-cover"
                     loading="lazy"
                   />
@@ -818,14 +818,14 @@ useEffect(() => {
               ) : (
                 <img
                   src={selectedItem.imageUrl}
-                  alt={selectedItem.name}
+                  alt={selectedItem?.name}
                   className="h-40 w-auto rounded-lg object-cover"
                   loading="lazy"
                 />
               )}
             </div>
 
-            <h2 className="text-2xl font-bold mb-2 select-none m-0">{selectedItem.name}</h2>
+            <h2 className="text-2xl font-bold mb-2 select-none m-0">{selectedItem?.name}</h2>
             <p className="text-gray-700 mb-2 select-none">{selectedItem.description}</p>
 
             <div className="mb-4">
@@ -918,7 +918,7 @@ useEffect(() => {
 
       {/* Footer naturally at bottom */}
       <div className="px-4 py-4 bg-gray-100 text-center text-gray-600 text-sm select-none rounded-t-lg border-t border-gray-300 mt-auto">
-        <p className="font-semibold text-gray-700 mb-1">{restaurant.name}</p>
+        <p className="font-semibold text-gray-700 mb-1">{restaurant?.name}</p>
         <p className="text-gray-600 mb-1">{restaurant.city}, {restaurant.addressLine2} {restaurant.postalCode}</p>
         <div className="border-t border-gray-300 pt-2 mt-2 text-xs text-gray-500">
           © 2025.{' '}
