@@ -3,6 +3,9 @@ import Card from "components/card";
 import Switch from "components/switch";
 import Dropdown from "components/icons/Dropdown";
 import ImageUploader, { uploadOne } from "./ImageUploader";
+
+import loadingWebm from '../../../../assets/gif/loader-anim.webm'
+
 import {
   getAllMenusByRestaurantId,
   toggleItemStatus,
@@ -451,7 +454,26 @@ export default function ComplexTable() {
     autoResetSorting: false,
   });
 
-  if (loading) return <div className="mt-5 dark:text-white">Loading...</div>;
+if (loading) {
+  return (
+    <div className="flex items-center justify-center h-screen">
+      <video
+        // If you imported: src={loadingWebm}
+        // If it's in public: src="/loading.webm"
+        src={loadingWebm}
+        autoPlay
+        loop
+        muted
+        playsInline
+        className="h-[100px] w-[100px] object-contain"
+      />
+    </div>
+  );
+}
+
+
+
+
 
   const headerGroups = table.getHeaderGroups();
   const rows = table.getRowModel().rows;
