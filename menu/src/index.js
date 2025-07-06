@@ -1,13 +1,17 @@
-import ReactDOM from "react-dom/client";
-import { BrowserRouter } from "react-router-dom";
-import "./index.css";
+// src/index.jsx
+import React from 'react';
+import { createRoot } from 'react-dom/client';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import App from './App';
+import { AuthProvider } from './contexts/AuthContext';
 
-import App from "./App";
-
-const root = ReactDOM.createRoot(document.getElementById("root"));
+const container = document.getElementById('root');
+const root = createRoot(container);
 
 root.render(
   <BrowserRouter>
-    <App />
+    <AuthProvider>
+      <App />
+    </AuthProvider>
   </BrowserRouter>
 );

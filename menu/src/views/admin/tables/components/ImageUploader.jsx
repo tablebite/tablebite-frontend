@@ -1,5 +1,3 @@
-// src/components/ImageUploader.jsx
-
 import React, { useState, useEffect } from "react";
 
 // your Cloudinary details
@@ -7,7 +5,7 @@ const cloudName    = "dnpfvqoq0";
 const uploadPreset = "tablebite";
 
 /** unsigned upload one file → secure_url */
-async function uploadOne(file) {
+export async function uploadOne(file) {
   const form = new FormData();
   form.append("file", file);
   form.append("upload_preset", uploadPreset);
@@ -25,11 +23,21 @@ async function uploadOne(file) {
 }
 
 /**
- * @param {{ imageUrls?: string[], onChange: (newUrls:string[]) => void }} props
+ * @param {{
+ *   imageUrls?: string[],
+ *   onChange: (newUrls: string[]) => void,
+ *   hideUploadButton?: boolean,
+ *   onFilesChange?: (files: File[]) => void
+ * }} props
  */
-export default function ImageUploader({ imageUrls = [], onChange }) {
-  const [files,    setFiles]    = useState([]);    // selected File[]
-  const [previews, setPreviews] = useState([]);    // blob URLs
+export default function ImageUploader({
+  imageUrls = [],
+  onChange,
+  hideUploadButton = false,
+  onFilesChange,
+}) {
+  const [files, setFiles] = useState([]);       // newly selected File[]
+  const [previews, setPreviews] = useState([]); // blob URLs
   const [uploading, setUploading] = useState(false);
   const maxImages = 5;
   const placeholder =
@@ -37,16 +45,21 @@ export default function ImageUploader({ imageUrls = [], onChange }) {
 
   // build previews when `files` changes
   useEffect(() => {
-    if (!files.length) return setPreviews([]);
+    if (!files.length) {
+      setPreviews([]);
+      if (onFilesChange) onFilesChange([]);
+      return;
+    }
     const urls = files.map((f) => URL.createObjectURL(f));
     setPreviews(urls);
+    if (onFilesChange) onFilesChange(files);
     return () => urls.forEach(URL.revokeObjectURL);
-  }, [files]);
+  }, [files, onFilesChange]);
 
   // handle file‐input change, but cap at (maxImages – existing – previews)
   const handleFileChange = (e) => {
     const selected = Array.from(e.target.files);
-    const allowed  = maxImages - imageUrls.length - previews.length;
+    const allowed = maxImages - imageUrls.length - previews.length;
     if (allowed <= 0) return;
     if (selected.length > allowed) {
       alert(`Only ${allowed} more image(s) allowed.`);
@@ -82,6 +95,7 @@ export default function ImageUploader({ imageUrls = [], onChange }) {
     const p = [...previews];
     p.splice(idx, 1);
     setPreviews(p);
+    if (onFilesChange) onFilesChange(f);
   };
 
   const total = imageUrls.length + previews.length;
@@ -148,7 +162,8 @@ export default function ImageUploader({ imageUrls = [], onChange }) {
       {atLimit && (
         <p className="text-red-500 text-sm">Maximum of {maxImages} images reached</p>
       )}
-      {!atLimit && files.length > 0 && (
+      {/* only show the built-in upload button if not hidden */}
+      {!hideUploadButton && !atLimit && files.length > 0 && (
         <button
           onClick={handleUpload}
           disabled={uploading}

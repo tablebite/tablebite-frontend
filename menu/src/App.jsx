@@ -1,36 +1,47 @@
-import React from "react";
-import { Routes, Route } from "react-router-dom";
+import React from 'react';
+import { Routes, Route } from 'react-router-dom';
 
-import RtlLayout from "layouts/rtl";
-import AdminLayout from "layouts/admin";
-import AuthLayout from "layouts/auth";
-import Home from "../src/menu/Home";
-import Landing from "../src/landing/Landing";
+import PrivateRoute from './views/auth/PrivateRoute';
+
+import AuthLayout  from 'layouts/auth';
+import AdminLayout from 'layouts/admin';
+import RtlLayout   from 'layouts/rtl';
+import Landing     from 'landing/Landing';
+import Home        from 'menu/Home';
 
 const App = () => {
-    const hostname = window.location.hostname;
+  const hostname = window.location.hostname;
 
-    return (
-        
-            <Routes>
-                {/* Check if the hostname is 'admin.tablebite.in' */}
-                {/* {hostname === "localhost" ? ( */}
-               
-                        <Route path="auth/*" element={<AuthLayout />} />
-                       <Route path="admin/*" element={<AdminLayout />} />
-                        <Route path="rtl/*" element={<RtlLayout />} />
-                
-                {/* ) : ( */}
-                
-                        {/* Default routes when hostname is not 'admin.tablebite.in' */}
-                        <Route path="/" element={<Landing />} />
-                        <Route path="/restaurant/:restaurantId" element={<Home />} />
-                
-                {/* )} */}
-                
-            </Routes>
-        
-    );
+  return (
+    <Routes>
+      {/* Public auth */}
+      <Route path="auth/*" element={<AuthLayout />} />
+
+      {/* Protected admin */}
+      <Route
+        path="admin/*"
+        element={
+          <PrivateRoute>
+            <AdminLayout />
+          </PrivateRoute>
+        }
+      />
+
+      {/* Protected RTL */}
+      <Route
+        path="rtl/*"
+        element={
+          <PrivateRoute>
+            <RtlLayout />
+          </PrivateRoute>
+        }
+      />
+
+      {/* Public site */}
+      <Route path="/" element={<Landing />} />
+      <Route path="/restaurant/:restaurantId" element={<Home />} />
+    </Routes>
+  );
 };
 
 export default App;

@@ -1,21 +1,17 @@
 import React, { useState, useEffect } from "react";
-import Select from "react-select";
 import Card from "components/card";
 import Switch from "components/switch";
 import Dropdown from "components/icons/Dropdown";
-import ImageUploader from "./ImageUploader";
+import ImageUploader, { uploadOne } from "./ImageUploader";
 import {
   getAllMenusByRestaurantId,
   toggleItemStatus,
   getAllCategoriessByRestaurantId,
   updateItemById,
   deleteItemById,
-  addItem
+  addItem,
 } from "../../../../Services/allApi";
-
-
-import { FiTrash2 } from "react-icons/fi";  // Import delete icon
-
+import { FiTrash2, FiSearch, FiEdit } from "react-icons/fi";
 import {
   createColumnHelper,
   flexRender,
@@ -23,9 +19,9 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { FiSearch, FiEdit } from "react-icons/fi";
 
 const columnHelper = createColumnHelper();
+
 export default function ComplexTable() {
   const restaurantId = "000000000001";
 
@@ -34,38 +30,43 @@ export default function ComplexTable() {
     typeof document !== "undefined" &&
     document.documentElement.classList.contains("dark");
 
-
   // DATA & FILTERS
   const [data, setData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("Select all category");
   const [selectedStatus, setSelectedStatus] = useState("Select all status");
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [itemToDelete, setItemToDelete] = useState(null);
- 
-
-  // LOADING / ERROR / SORTING
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [sorting, setSorting] = useState([]);
 
   // CATEGORIES
   const [categories, setCategories] = useState([]);
 
-  // EDIT MODAL
+  // MODALS & FORM
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState(null);
+
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false); // Add modal state
+
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [formValues, setFormValues] = useState({
     name: "",
     description: "",
     categoryName: "",
-    type: "",
+    type: "VEG",
     imageUrls: [],
-    vegNonVeg: "Select Veg/Non-Veg", // Default to "Select Veg/Non-Veg"
+    vegNonVeg: "Select Veg/Non-Veg",
   });
-  const [saving, setSaving] = useState(false);
+
+  // validation
+  const [nameError, setNameError] = useState("");
+
+  // for Add flow
+  const [pendingFiles, setPendingFiles] = useState([]);
+  const [addUploading, setAddUploading] = useState(false);
+
+  // for Edit flow
+  const [pendingEditFiles, setPendingEditFiles] = useState([]);
+  const [saveUploading, setSaveUploading] = useState(false);
 
   // STATUS CONFIRM
   const [confirmState, setConfirmState] = useState({
@@ -75,43 +76,25 @@ export default function ComplexTable() {
     loading: false,
   });
 
+  // LOADING / ERROR
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // SORTING (default: by id descending)
+  const [sorting, setSorting] = useState([{ id: "id", desc: true }]);
+
   // prevent background scroll when modal open
   useEffect(() => {
     document.body.style.overflow =
-      isEditOpen || confirmState.isOpen ? "hidden" : "";
+      isEditOpen || confirmState.isOpen || isAddModalOpen
+        ? "hidden"
+        : "";
     return () => {
       document.body.style.overflow = "";
     };
-  }, [isEditOpen, confirmState.isOpen]);
+  }, [isEditOpen, confirmState.isOpen, isAddModalOpen]);
 
-
-const openAddModal = () => {
-  setIsAddModalOpen(true);
-  setFormValues({
-    name: "",
-    description: "",
-    categoryName: categories.length > 0 ? categories[0].name : "", // Default to first category
-    type: "VEG", // Default to "VEG"
-    imageUrls: [],
-    vegNonVeg: formValues.vegNonVeg || "Select Veg/Non-Veg", // Ensure it retains the previous value of Veg/Non-Veg
-  });
-};
-
-
-const closeAddModal = () => {
-  setIsAddModalOpen(false);
-  setFormValues({
-    name: "",
-    description: "",
-    categoryName: "",
-    type: "VEG",
-    imageUrls: [],
-    vegNonVeg: formValues.vegNonVeg || "Select Veg/Non-Veg", // Make sure this matches the dropdown value
-  });
-};
-
-
-  // fetch data & categories
+  // fetch data & categories, then sort descending by id
   useEffect(() => {
     (async () => {
       setLoading(true);
@@ -120,8 +103,11 @@ const closeAddModal = () => {
           getAllMenusByRestaurantId(restaurantId),
           getAllCategoriessByRestaurantId(restaurantId),
         ]);
-        setData(menusRes.data);
-        setFilteredData(menusRes.data);
+        const sorted = [...menusRes.data].sort(
+          (a, b) => parseInt(b.id, 10) - parseInt(a.id, 10)
+        );
+        setData(sorted);
+        setFilteredData(sorted);
         setCategories(catsRes.data);
       } catch {
         setError("Error fetching data");
@@ -147,17 +133,36 @@ const closeAddModal = () => {
           selectedStatus === "Select all status" ||
           (selectedStatus === "Active" && item.isEnabled) ||
           (selectedStatus === "Inactive" && !item.isEnabled);
-
-        // Check if Veg/Non-Veg matches the item type
         const matchVegNonVeg =
-          formValues.vegNonVeg === "Select Veg/Non-Veg" || // Allow both if no selection is made
-          (formValues.vegNonVeg === "Veg" && item.type === "VEG") ||
-          (formValues.vegNonVeg === "Non-Veg" && item.type === "NON_VEG");
-
+          formValues.vegNonVeg === "Select Veg/Non-Veg" ||
+          (formValues.vegNonVeg === "Veg" && item.type === "Veg") ||
+          (formValues.vegNonVeg === "Non-Veg" && item.type === "Non-Veg");
         return matchText && matchCat && matchStatus && matchVegNonVeg;
       })
     );
   }, [searchQuery, data, selectedFilter, selectedStatus, formValues.vegNonVeg]);
+
+  // open/close add modal
+  const openAddModal = () => {
+    setFormValues({
+      name: "",
+      description: "",
+      categoryName: categories[0]?.name || "",
+      type: "VEG",
+      imageUrls: [],
+      vegNonVeg: "Select Veg/Non-Veg",
+    });
+    setPendingFiles([]);
+    setNameError("");
+    setError(null);
+    setIsAddModalOpen(true);
+  };
+  const closeAddModal = () => {
+    setIsAddModalOpen(false);
+    setError(null);
+    setNameError("");
+    setPendingFiles([]);
+  };
 
   // open/close edit modal
   const openEditModal = (item) => {
@@ -166,21 +171,34 @@ const closeAddModal = () => {
       name: item.name || "",
       description: item.description || "",
       categoryName: item.categoryName || "",
-      type: item.type || "",
+      type: (item.type ?? "").toUpperCase().replace(/-/g, "_"),
       imageUrls: item.imageUrls || [],
-      vegNonVeg: item.vegNonVeg || "Select Veg/Non-Veg", // Default to "Select Veg/Non-Veg" if not provided
+      vegNonVeg: item.vegNonVeg || "Select Veg/Non-Veg",
     });
+    setPendingEditFiles([]);
+    setNameError("");
     setError(null);
     setIsEditOpen(true);
   };
-
   const closeEditModal = () => {
     setIsEditOpen(false);
     setEditingItem(null);
     setError(null);
+    setNameError("");
+    setPendingEditFiles([]);
   };
 
-  // open/close status confirm
+  // open/close delete modal
+  const openDeleteModal = (item) => {
+    setItemToDelete(item);
+    setIsDeleteModalOpen(true);
+  };
+  const closeDeleteModal = () => {
+    setItemToDelete(null);
+    setIsDeleteModalOpen(false);
+  };
+
+  // STATUS CONFIRM
   const openConfirm = (item) => {
     setConfirmState({
       isOpen: true,
@@ -197,15 +215,22 @@ const closeAddModal = () => {
       loading: false,
     });
   };
-
   const handleConfirmToggle = async () => {
-    const { item, newStatus } = confirmState;
     setConfirmState((s) => ({ ...s, loading: true }));
     try {
-      await toggleItemStatus(restaurantId, item.id);
+      await toggleItemStatus(restaurantId, confirmState.item.id);
       setData((d) =>
         d.map((i) =>
-          i.id === item.id ? { ...i, isEnabled: newStatus } : i
+          i.id === confirmState.item.id
+            ? { ...i, isEnabled: confirmState.newStatus }
+            : i
+        )
+      );
+      setFilteredData((d) =>
+        d.map((i) =>
+          i.id === confirmState.item.id
+            ? { ...i, isEnabled: confirmState.newStatus }
+            : i
         )
       );
       closeConfirm();
@@ -214,90 +239,132 @@ const closeAddModal = () => {
       setConfirmState((s) => ({ ...s, loading: false }));
     }
   };
+
+  // handle delete
   const handleDelete = async () => {
-  if (itemToDelete) {
+    if (!itemToDelete) return;
     try {
-      await deleteItemById(restaurantId, itemToDelete.id); // Call delete API
-      setData((prevData) => prevData.filter((item) => item.id !== itemToDelete.id)); // Remove deleted item from state
+      await deleteItemById(restaurantId, itemToDelete.id);
+      setData((d) => d.filter((i) => i.id !== itemToDelete.id));
+      setFilteredData((d) => d.filter((i) => i.id !== itemToDelete.id));
       closeDeleteModal();
-    } catch (error) {
+    } catch {
       setError("Error deleting item");
     }
-  }
-};
+  };
 
-
-
-
-  // form change
-  const handleFormChange = (field, value) =>
+  // form change helper (clears nameError when user types)
+  const handleFormChange = (field, value) => {
     setFormValues((fv) => ({ ...fv, [field]: value }));
+    if (field === "name") setNameError("");
+  };
 
-  // save item
+  // save edited item (with optional upload of pendingEditFiles)
   const handleSave = async () => {
     if (!editingItem) return;
-    setSaving(true);
+    setError(null);
+    // validation
+    if (!formValues.name.trim()) {
+      setNameError("Name is required");
+      return;
+    }
+    setSaveUploading(true);
     try {
-      const chosen = categories.find((c) => c.name === formValues.categoryName);
+      // upload any new files
+      let finalUrls = formValues.imageUrls;
+      if (pendingEditFiles.length > 0) {
+        const uploaded = await Promise.all(
+          pendingEditFiles.map((f) => uploadOne(f))
+        );
+        finalUrls = [...finalUrls, ...uploaded];
+      }
+      // build payload
+      const chosenCat = categories.find(
+        (c) => c.name === formValues.categoryName
+      );
       const payload = {
         name: formValues.name,
         description: formValues.description,
-        categoryId: chosen?.id || "",
+        categoryId: chosenCat?.id || "",
         type: formValues.type,
-        imageUrls: formValues.imageUrls,
+        imageUrls: finalUrls,
       };
+      // call API
       const resp = await updateItemById(
         restaurantId,
         editingItem.id,
         payload
       );
       const updated = resp.data;
-      setData((d) =>
+      // update state
+      setData((d) => d.map((i) => (i.id === updated.id ? updated : i)));
+      setFilteredData((d) =>
         d.map((i) => (i.id === updated.id ? updated : i))
       );
+      // cleanup
+      setPendingEditFiles([]);
       closeEditModal();
     } catch {
       setError("Failed to update item");
     } finally {
-      setSaving(false);
+      setSaveUploading(false);
     }
   };
 
-  const openDeleteModal = (item) => {
-  setItemToDelete(item);
-  setIsDeleteModalOpen(true);
-};
-
-const closeDeleteModal = () => {
-  setItemToDelete(null);
-  setIsDeleteModalOpen(false);
-};
-
-const handleAdd = async () => {
-  setSaving(true);
-  const category = categories.find((cat) => cat.name === formValues.categoryName);
-  const requestBody = {
-    name: formValues.name,
-    description: formValues.description,
-    restaurantId,
-    categoryId: category?.id,
-    type: formValues.type,
-    imageUrls: formValues.imageUrls,
+  // add new item (with optional upload of pendingFiles)
+  const handleAdd = async () => {
+    setError(null);
+    // validation
+    if (!formValues.name.trim()) {
+      setNameError("Name is required");
+      return;
+    }
+    setAddUploading(true);
+    try {
+      // upload any new files
+      let finalUrls = formValues.imageUrls;
+      if (pendingFiles.length > 0) {
+        const uploaded = await Promise.all(
+          pendingFiles.map((f) => uploadOne(f))
+        );
+        finalUrls = [...finalUrls, ...uploaded];
+      }
+      // build request
+      const chosenCat = categories.find(
+        (c) => c.name === formValues.categoryName
+      );
+      const requestBody = {
+        name: formValues.name,
+        description: formValues.description,
+        restaurantId,
+        categoryId: chosenCat?.id,
+        type: formValues.type,
+        imageUrls: finalUrls,
+      };
+      const resp = await addItem(requestBody);
+      const newItem = resp.data;
+      // insert & sort
+      setData((prev) =>
+        [...prev, newItem].sort(
+          (a, b) => parseInt(b.id, 10) - parseInt(a.id, 10)
+        )
+      );
+      setFilteredData((prev) =>
+        [...prev, newItem].sort(
+          (a, b) => parseInt(b.id, 10) - parseInt(a.id, 10)
+        )
+      );
+      // cleanup
+      setPendingFiles([]);
+      closeAddModal();
+    } catch {
+      setError("Error adding item");
+    } finally {
+      setAddUploading(false);
+    }
   };
 
-  try {
-    await addItem(requestBody); // Call the addItem API
-    setData((prevData) => [requestBody, ...prevData]);
-    closeAddModal();
-  } catch (error) {
-    setError("Error adding item");
-  } finally {
-    setSaving(false);
-  }
-};
-
-
-  // table columns
+  // table columns (unchanged)
   const columns = [
     columnHelper.accessor("imageUrls", {
       id: "image",
@@ -318,7 +385,11 @@ const handleAdd = async () => {
     }),
     columnHelper.accessor("name", {
       id: "name",
-      header: () => <p className="text-sm font-bold">NAME</p>,
+      header: () => (
+        <p className="text-sm font-bold flex items-center">
+          NAME
+        </p>
+      ),
       cell: (info) => <span className="text-sm">{info.getValue()}</span>,
     }),
     columnHelper.accessor("categoryName", {
@@ -330,9 +401,7 @@ const handleAdd = async () => {
       id: "type",
       header: () => <p className="text-sm font-bold">TYPE</p>,
       cell: (info) => (
-        <span className="text-sm">
-          {info.getValue().replace(/_/g, " ")}
-        </span>
+        <span className="text-sm">{info.getValue().replace(/_/g, " ")}</span>
       ),
     }),
     columnHelper.accessor("isEnabled", {
@@ -349,32 +418,29 @@ const handleAdd = async () => {
         );
       },
     }),
-   
     columnHelper.display({
       id: "actions",
       header: () => <p className="text-sm font-bold">ACTIONS</p>,
       cell: ({ row }) => (
-    <div className="flex space-x-2">
-      <button
-        onClick={() => openEditModal(row.original)}
-        className="p-1 hover:bg-gray-100 dark:hover:bg-navy-700 rounded"
-      >
-        <FiEdit className="w-5 h-5 text-blue-500" />
-      </button>
-      {/* Delete Button */}
-      <button
-        onClick={() => openDeleteModal(row.original)}
-        className="p-1 hover:bg-gray-100 dark:hover:bg-navy-700 rounded"
-      >
-        <FiTrash2 className="w-5 h-5 text-red-500" />
-      </button>
-    </div>
-  ),
-})
-
+        <div className="flex space-x-2">
+          <button
+            onClick={() => openEditModal(row.original)}
+            className="p-1 hover:bg-gray-100 dark:hover:bg-navy-700 rounded"
+          >
+            <FiEdit className="w-5 h-5 text-blue-500" />
+          </button>
+          <button
+            onClick={() => openDeleteModal(row.original)}
+            className="p-1 hover:bg-gray-100 dark:hover:bg-navy-700 rounded"
+          >
+            <FiTrash2 className="w-5 h-5 text-red-500" />
+          </button>
+        </div>
+      ),
+    }),
   ];
-  
 
+  // build the table
   const table = useReactTable({
     data: filteredData,
     columns,
@@ -382,18 +448,18 @@ const handleAdd = async () => {
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    autoResetSorting: false,
   });
 
-
-  if (loading) return <div className="mt-5 dark:text-white ">Loading...</div>;
+  if (loading) return <div className="mt-5 dark:text-white">Loading...</div>;
 
   const headerGroups = table.getHeaderGroups();
   const rows = table.getRowModel().rows;
-  const options = categories.map((c) => ({ value: c.name, label: c.name }));
 
   return (
     <>
       <Card extra="h-[600px] px-10 pb-10">
+        {/* Filters & Add button */}
         <div className="mt-8 flex flex-col sm:flex-row gap-4">
           <div className="w-full sm:w-64 relative">
             <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -408,7 +474,10 @@ const handleAdd = async () => {
           </div>
           <div className="w-full sm:w-64 relative z-40">
             <Dropdown
-              options={["Select all category", ...categories.map((c) => c.name)]}
+              options={[
+                "Select all category",
+                ...categories.map((c) => c.name),
+              ]}
               selectedOption={selectedFilter}
               setSelectedOption={setSelectedFilter}
             />
@@ -420,27 +489,26 @@ const handleAdd = async () => {
               setSelectedOption={setSelectedStatus}
             />
           </div>
-          {/* Veg/Non-Veg Dropdown */}
           <div className="w-full sm:w-64 relative z-20">
             <Dropdown
               options={["Select Veg/Non-Veg", "Veg", "Non-Veg"]}
               selectedOption={formValues.vegNonVeg}
-              setSelectedOption={(value) => handleFormChange("vegNonVeg", value)} // Handle change
+              setSelectedOption={(value) =>
+                handleFormChange("vegNonVeg", value)
+              }
             />
           </div>
-
-          {/* Add Item Button */}
           <div className="w-full sm:w-64 relative z-10 flex items-center justify-end">
-          <button
-            onClick={() => openAddModal({})}  // Open the edit modal with empty form for adding new item
-            className="px-4 py-3 bg-blue-600 text-white rounded-xl h-12" // Set height here to match the dropdown height
-          >
-            Add Item
-          </button>
+            <button
+              onClick={openAddModal}
+              className="px-4 py-3 bg-blue-600 text-white rounded-xl h-12"
+            >
+              Add Item
+            </button>
+          </div>
         </div>
 
-        </div>
-
+        {/* Table */}
         <div className="mt-8 overflow-x-auto">
           <table className="w-full table-fixed">
             <thead>
@@ -490,99 +558,125 @@ const handleAdd = async () => {
         </div>
       </Card>
 
+      {/* ADD MODAL */}
       {isAddModalOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-75 backdrop-blur-sm z-50 flex items-center justify-center"
+          onClick={closeAddModal}
+        >
           <div
-            className="fixed inset-0 bg-black bg-opacity-75 backdrop-blur-sm z-50 flex items-center justify-center"
-            onClick={closeAddModal}
+            className="relative bg-white dark:bg-navy-900 shadow-lg rounded-lg p-6 w-full max-w-lg"
+            onClick={(e) => e.stopPropagation()}
           >
-            <div
-              className="relative bg-white dark:bg-navy-900 shadow-lg rounded-lg p-6 w-full max-w-lg"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <h2 className="text-lg font-bold mb-4 dark:text-white">Add Item</h2>
-              <div className="space-y-4">
-                {/* Name */}
-                <div>
-                  <label className="block text-sm font-medium mb-1 dark:text-white">Name</label>
-                  <input
-                    type="text"
-                    value={formValues.name}
-                    onChange={(e) => handleFormChange("name", e.target.value)}
-                    className="w-full h-10 px-3 border rounded bg-white dark:bg-navy-800 dark:text-white"
-                  />
-                </div>
-
-                {/* Description */}
-                <div>
-                  <label className="block text-sm font-medium mb-1 dark:text-white">Description</label>
-                  <textarea
-                    value={formValues.description}
-                    onChange={(e) => handleFormChange("description", e.target.value)}
-                    className="w-full px-3 py-2 border rounded bg-white dark:bg-navy-800 dark:text-white"
-                  />
-                </div>
-
-                {/* Category */}
-                <div>
-                  <label className="block text-sm font-medium mb-1 dark:text-white">Category</label>
-                  <select
-                    value={formValues.categoryName}
-                    onChange={(e) => handleFormChange("categoryName", e.target.value)}
-                    className="w-full h-10 px-3 border rounded bg-white dark:bg-navy-800 dark:text-white"
-                  >
-                    {categories.map((cat) => (
-                      <option key={cat.id} value={cat.name}>
-                        {cat.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Type */}
-                <div>
-                  <label className="block text-sm font-medium mb-1 dark:text-white">Type</label>
-                  <select
-                    value={formValues.type}
-                    onChange={(e) => handleFormChange("type", e.target.value)}
-                    className="w-full h-10 px-3 border rounded bg-white dark:bg-navy-800 dark:text-white"
-                  >
-                    <option value="VEG">VEG</option>
-                    <option value="NON_VEG">NON VEG</option>
-                  </select>
-                </div>
-
-              
-
-                {/* Image Uploader */}
-                <ImageUploader
-                  imageUrls={formValues.imageUrls}
-                  onChange={(urls) => setFormValues((fv) => ({ ...fv, imageUrls: urls }))}
+            <h2 className="text-lg font-bold mb-4 dark:text-white">
+              Add Item
+            </h2>
+            <div className="space-y-4">
+              {/* Name */}
+              <div>
+                <label className="block text-sm font-medium mb-1 dark:text-white">
+                  Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={formValues.name}
+                  onChange={(e) =>
+                    handleFormChange("name", e.target.value)
+                  }
+                  className={`w-full h-10 px-3 border rounded bg-white dark:bg-navy-800 dark:text-white focus:outline-none ${
+                    nameError
+                      ? "border-red-500 focus:ring-red-500"
+                      : "border-gray-300 focus:ring-blue-500"
+                  }`}
                 />
-
-                {error && <div className="text-red-500 text-sm">{error}</div>}
-
-                {/* Actions */}
-                <div className="flex justify-end space-x-4 mt-4">
-                  <button
-                    onClick={closeAddModal}
-                    className="px-4 py-2 bg-gray-200 rounded dark:bg-navy-700 dark:text-white"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleAdd}
-                    disabled={saving}
-                    className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
-                  >
-                    {saving ? "Saving..." : "Save"}
-                  </button>
-                </div>
+                {nameError && (
+                  <p className="text-red-500 text-xs mt-1">{nameError}</p>
+                )}
+              </div>
+              {/* Description */}
+              <div>
+                <label className="block text-sm font-medium mb-1 dark:text-white">
+                  Description
+                </label>
+                <textarea
+                  value={formValues.description}
+                  onChange={(e) =>
+                    handleFormChange("description", e.target.value)
+                  }
+                  className="w-full px-3 py-2 border rounded bg-white dark:bg-navy-800 dark:text-white"
+                />
+              </div>
+              {/* Category */}
+              <div>
+                <label className="block text-sm font-medium mb-1 dark:text-white">
+                  Category <span className="text-red-500 ml-1">*</span>
+                </label>
+                <select
+                  value={formValues.categoryName}
+                  onChange={(e) =>
+                    handleFormChange("categoryName", e.target.value)
+                  }
+                  className="w-full h-10 px-3 border rounded bg-white dark:bg-navy-800 dark:text-white"
+                >
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.name}>
+                      {cat.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              {/* Type */}
+              <div>
+                <label className="block text-sm font-medium mb-1 dark:text-white">
+                  Type <span className="text-red-500 ml-1">*</span>
+                </label>
+                <select
+                  value={formValues.type}
+                  onChange={(e) =>
+                    handleFormChange("type", e.target.value)
+                  }
+                  className="w-full h-10 px-3 border rounded bg-white dark:bg-navy-800 dark:text-white"
+                >
+                  <option value="VEG">VEG</option>
+                  <option value="NON_VEG">NON VEG</option>
+                </select>
+              </div>
+              {/* Image Uploader */}
+              <ImageUploader
+                imageUrls={formValues.imageUrls}
+                onChange={(urls) =>
+                  setFormValues((fv) => ({ ...fv, imageUrls: urls }))
+                }
+                hideUploadButton={true}
+                onFilesChange={(files) => setPendingFiles(files)}
+              />
+              {error && (
+                <div className="text-red-500 text-sm">{error}</div>
+              )}
+              {/* Actions */}
+              <div className="flex justify-end space-x-4 mt-4">
+                <button
+                  onClick={closeAddModal}
+                  className="px-4 py-2 bg-gray-200 rounded dark:bg-navy-700 dark:text-white"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleAdd}
+                  disabled={addUploading}
+                  className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
+                >
+                  {pendingFiles.length > 0
+                    ? addUploading
+                      ? "Uploading & Saving…"
+                      : "Upload & Save"
+                    : "Save"}
+                </button>
               </div>
             </div>
           </div>
-        )}
-
-
+        </div>
+      )}
 
       {/* EDIT MODAL */}
       {isEditOpen && (
@@ -594,21 +688,31 @@ const handleAdd = async () => {
             className="relative bg-white dark:bg-navy-900 shadow-lg rounded-lg p-6 w-full max-w-lg"
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 className="text-lg font-bold mb-4 dark:text-white">Edit Item</h2>
+            <h2 className="text-lg font-bold mb-4 dark:text-white">
+              Edit Item
+            </h2>
             <div className="space-y-4">
               {/* Name */}
               <div>
                 <label className="block text-sm font-medium mb-1 dark:text-white">
-                  Name
+                  Name <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   value={formValues.name}
-                  onChange={(e) => handleFormChange("name", e.target.value)}
-                  className="w-full h-10 px-3 border rounded bg-white dark:bg-navy-800 dark:text-white"
+                  onChange={(e) =>
+                    handleFormChange("name", e.target.value)
+                  }
+                  className={`w-full h-10 px-3 border rounded bg-white dark:bg-navy-800 dark:text-white focus:outline-none ${
+                    nameError
+                      ? "border-red-500 focus:ring-red-500"
+                      : "border-gray-300 focus:ring-blue-500"
+                  }`}
                 />
+                {nameError && (
+                  <p className="text-red-500 text-xs mt-1">{nameError}</p>
+                )}
               </div>
-
               {/* Description */}
               <div>
                 <label className="block text-sm font-medium mb-1 dark:text-white">
@@ -616,19 +720,22 @@ const handleAdd = async () => {
                 </label>
                 <textarea
                   value={formValues.description}
-                  onChange={(e) => handleFormChange("description", e.target.value)}
+                  onChange={(e) =>
+                    handleFormChange("description", e.target.value)
+                  }
                   className="w-full px-3 py-2 border rounded bg-white dark:bg-navy-800 dark:text-white"
                 />
               </div>
-
               {/* Category */}
               <div>
                 <label className="block text-sm font-medium mb-1 dark:text-white">
-                  Category
+                  Category <span className="text-red-500 ml-1">*</span>
                 </label>
                 <select
                   value={formValues.categoryName}
-                  onChange={(e) => handleFormChange("categoryName", e.target.value)}
+                  onChange={(e) =>
+                    handleFormChange("categoryName", e.target.value)
+                  }
                   className="w-full h-10 px-3 border rounded bg-white dark:bg-navy-800 dark:text-white"
                 >
                   {categories.map((cat) => (
@@ -638,33 +745,34 @@ const handleAdd = async () => {
                   ))}
                 </select>
               </div>
-
-
               {/* Type */}
               <div>
                 <label className="block text-sm font-medium mb-1 dark:text-white">
-                  Type
+                  Type <span className="text-red-500 ml-1">*</span>
                 </label>
                 <select
                   value={formValues.type}
-                  onChange={(e) => handleFormChange("type", e.target.value)}
+                  onChange={(e) =>
+                    handleFormChange("type", e.target.value)
+                  }
                   className="w-full h-10 px-3 border rounded bg-white dark:bg-navy-800 dark:text-white"
                 >
                   <option value="VEG">VEG</option>
                   <option value="NON_VEG">NON VEG</option>
                 </select>
               </div>
-
               {/* Image Uploader */}
               <ImageUploader
                 imageUrls={formValues.imageUrls}
                 onChange={(urls) =>
                   setFormValues((fv) => ({ ...fv, imageUrls: urls }))
                 }
+                hideUploadButton={true}
+                onFilesChange={(files) => setPendingEditFiles(files)}
               />
-
-              {error && <div className="text-red-500 text-sm">{error}</div>}
-
+              {error && (
+                <div className="text-red-500 text-sm">{error}</div>
+              )}
               {/* Actions */}
               <div className="flex justify-end space-x-4 mt-4">
                 <button
@@ -675,51 +783,55 @@ const handleAdd = async () => {
                 </button>
                 <button
                   onClick={handleSave}
-                  disabled={saving}
+                  disabled={saveUploading}
                   className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
                 >
-                  {saving ? "Saving..." : "Save"}
+                  {pendingEditFiles.length > 0
+                    ? saveUploading
+                      ? "Uploading & Saving…"
+                      : "Upload & Save"
+                    : "Save"}
                 </button>
               </div>
             </div>
           </div>
         </div>
       )}
-      
-{/* DELETE MODAL */}
-{isDeleteModalOpen && (
-  <div
-    className="fixed inset-0 bg-black bg-opacity-75 backdrop-blur-sm z-50 flex items-center justify-center"
-    onClick={closeDeleteModal}
-  >
-    <div
-      className="relative bg-white dark:bg-navy-900 shadow-lg rounded-lg p-6 w-full max-w-sm"
-      onClick={(e) => e.stopPropagation()}
-    >
-      <h3 className="text-lg font-semibold dark:text-white">
-        Confirm Deletion
-      </h3>
-      <p className="mt-2 dark:text-gray-300">
-        Are you sure you want to remove{" "}
-        <strong>{itemToDelete?.name}</strong>?
-      </p>
-      <div className="mt-4 flex justify-end space-x-3">
-        <button
+
+      {/* DELETE MODAL */}
+      {isDeleteModalOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-75 backdrop-blur-sm z-50 flex items-center justify-center"
           onClick={closeDeleteModal}
-          className="px-4 py-2 bg-gray-200 rounded dark:bg-navy-700 dark:text-white"
         >
-          Cancel
-        </button>
-        <button
-          onClick={handleDelete}
-          className="px-4 py-2 bg-red-600 text-white rounded"
-        >
-          Delete
-        </button>
-      </div>
-    </div>
-  </div>
-)}
+          <div
+            className="relative bg-white dark:bg-navy-900 shadow-lg rounded-lg p-6 w-full max-w-sm"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-lg font-semibold dark:text-white">
+              Confirm Deletion
+            </h3>
+            <p className="mt-2 dark:text-gray-300">
+              Are you sure you want to remove{" "}
+              <strong>{itemToDelete?.name}</strong>?
+            </p>
+            <div className="mt-4 flex justify-end space-x-3">
+              <button
+                onClick={closeDeleteModal}
+                className="px-4 py-2 bg-gray-200 rounded dark:bg-navy-700 dark:text-white"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                className="px-4 py-2 bg-red-600 text-white rounded"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* STATUS CONFIRMATION MODAL */}
       {confirmState.isOpen && (
@@ -752,11 +864,13 @@ const handleAdd = async () => {
               <button
                 onClick={handleConfirmToggle}
                 disabled={confirmState.loading}
-                className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50 z-5"
+                className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
               >
                 {confirmState.loading
                   ? "Saving..."
-                  : `Yes, ${confirmState.newStatus ? "Activate" : "Deactivate"}`}
+                  : `Yes, ${
+                      confirmState.newStatus ? "Activate" : "Deactivate"
+                    }`}
               </button>
             </div>
           </div>
