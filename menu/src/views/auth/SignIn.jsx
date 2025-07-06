@@ -1,34 +1,40 @@
 // src/views/auth/SignIn.jsx
-import React, { useState } from 'react';
-import { useLocation, Link } from 'react-router-dom';
-import { useAuth }            from '../../contexts/AuthContext';
-import InputField             from 'components/fields/InputField';
-import Checkbox               from 'components/checkbox';
-import { FcGoogle }           from 'react-icons/fc';
+import React, { useState, useEffect } from "react";
+import { useLocation, Link } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
+import InputField from "components/fields/InputField";
+import Checkbox from "components/checkbox";
+import { FcGoogle } from "react-icons/fc";
 
 export default function SignIn() {
-  const [email, setEmail]             = useState('');
-  const [password, setPassword]       = useState('');
-  const [keepLoggedIn, setKeepLoggedIn] = useState(false);
-  const { login }                     = useAuth();
-  const location                      = useLocation();
-  const fromPath                      = location.state?.from?.pathname || '/admin/default';
+  // On mount, apply saved theme
+  useEffect(() => {
+    const dark = localStorage.getItem("darkmode") === "true";
+    if (dark) document.body.classList.add("dark");
+    else document.body.classList.remove("dark");
+  }, []);
 
-  const handleSubmit = async e => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [keepLoggedIn, setKeepLoggedIn] = useState(false);
+  const { login } = useAuth();
+  const location = useLocation();
+  const fromPath = location.state?.from?.pathname || "/admin/default";
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('[SignIn] submitting with:', { email, password, keepLoggedIn });
+    console.log("[SignIn] submitting with:", { email, password, keepLoggedIn });
     try {
       await login({ email, password }, fromPath);
     } catch (err) {
-      console.error('[SignIn] login error:', err);
-      alert(err.message || 'Sign in failed');
+      console.error("[SignIn] login error:", err);
+      alert(err.message || "Sign in failed");
     }
   };
 
   return (
     <div className="mb-16 flex h-full w-full items-center justify-center px-2 md:mx-0 md:px-0 lg:mb-10 lg:items-center lg:justify-start">
-      {/* Sign in section */}
-      <div className="mt-[5vh] w-full max-w-full  flex-col items-center md:pl-4 lg:pl-0 xl:max-w-[420px]">
+      <div className="mt-[5vh] w-full max-w-full flex-col items-center md:pl-4 lg:pl-0 xl:max-w-[420px]">
         <h4 className="mb-2.5 text-4xl font-bold text-navy-700 dark:text-white">
           Sign In
         </h4>
@@ -61,8 +67,8 @@ export default function SignIn() {
             id="email"
             type="email"
             placeholder="Enter email"
-            value={email}                     // ← controlled
-            onChange={e => setEmail(e.target.value)}  // ← controlled
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
           />
 
           {/* Password */}
@@ -73,8 +79,8 @@ export default function SignIn() {
             id="password"
             type="password"
             placeholder="Enter password"
-            value={password}                  // ← controlled
-            onChange={e => setPassword(e.target.value)} // ← controlled
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
           />
 
           {/* Keep me logged in + Forgot */}
@@ -82,7 +88,7 @@ export default function SignIn() {
             <label className="flex items-center">
               <Checkbox
                 checked={keepLoggedIn}
-                onChange={e => setKeepLoggedIn(e.target.checked)}
+                onChange={(e) => setKeepLoggedIn(e.target.checked)}
               />
               <span className="ml-2 text-sm font-medium text-navy-700 dark:text-white">
                 Keep me logged In
