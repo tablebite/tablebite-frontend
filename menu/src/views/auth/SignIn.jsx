@@ -60,7 +60,7 @@ export default function SignIn() {
             label="Email*"
             id="email"
             type="email"
-            placeholder="abc@tablebite.com"
+            placeholder="Enter email"
             value={email}                     // ← controlled
             onChange={e => setEmail(e.target.value)}  // ← controlled
           />
@@ -72,7 +72,7 @@ export default function SignIn() {
             label="Password*"
             id="password"
             type="password"
-            placeholder="abc"
+            placeholder="Enter password"
             value={password}                  // ← controlled
             onChange={e => setPassword(e.target.value)} // ← controlled
           />
