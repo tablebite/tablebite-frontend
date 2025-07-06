@@ -367,7 +367,7 @@ export default function ComplexTable() {
     }
   };
 
-  // table columns (unchanged)
+  // table columns
   const columns = [
     columnHelper.accessor("imageUrls", {
       id: "image",
@@ -389,9 +389,7 @@ export default function ComplexTable() {
     columnHelper.accessor("name", {
       id: "name",
       header: () => (
-        <p className="text-sm font-bold flex items-center">
-          NAME
-        </p>
+        <p className="text-sm font-bold flex items-center">NAME</p>
       ),
       cell: (info) => <span className="text-sm">{info.getValue()}</span>,
     }),
@@ -454,22 +452,6 @@ export default function ComplexTable() {
     autoResetSorting: false,
   });
 
-if (loading) {
-  return (
-    <div className="flex items-center justify-center h-screen">
-      <video
-        // If you imported: src={loadingWebm}
-        // If it's in public: src="/loading.webm"
-        src={loadingWebm}
-        autoPlay
-        loop
-        muted
-        playsInline
-        className="h-[100px] w-[100px] object-contain"
-      />
-    </div>
-  );
-}
 
 
 
@@ -545,22 +527,42 @@ if (loading) {
                                  px-4 py-2 text-xs text-gray-600 dark:text-white text-left cursor-pointer
                                  bg-white dark:bg-navy-900 z-10"
                     >
-                      {flexRender(h.column.columnDef.header, h.getContext())}
+                      {flexRender(
+                        h.column.columnDef.header,
+                        h.getContext()
+                      )}
                     </th>
                   ))}
                 </tr>
               ))}
             </thead>
             <tbody>
-              {rows.length > 0 ? (
+              {loading ? (
+                  <div className="absolute inset-0 flex items-center justify-center bg-white/50 dark:bg-navy-900/50 z-10">
+                  <video
+                    src={loadingWebm}
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    className="h-[70px] w-[70px] object-contain"
+                  />
+                </div>
+              ) : rows.length > 0 ? (
                 rows.map((row) => (
                   <tr
                     key={row.id}
                     className="hover:bg-gray-50 dark:hover:bg-navy-700 cursor-pointer"
                   >
                     {row.getVisibleCells().map((cell) => (
-                      <td key={cell.id} className="px-4 py-3 align-top">
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      <td
+                        key={cell.id}
+                        className="px-4 py-3 align-top"
+                      >
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
                       </td>
                     ))}
                   </tr>
