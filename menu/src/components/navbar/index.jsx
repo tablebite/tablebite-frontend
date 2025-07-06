@@ -11,6 +11,7 @@ import {
 import avatar from "assets/img/avatars/avatar4.png";
 import Dropdown from "components/dropdown";
 import navbarimage from "assets/img/layout/Navbar.png";
+import { useAuth } from "contexts/AuthContext"; 
 
 const Navbar = (props) => {
   const { onOpenSidenav, brandText } = props;
@@ -18,6 +19,7 @@ const Navbar = (props) => {
   // Check localStorage for dark mode preference
   const savedDarkMode = localStorage.getItem("darkmode") === "true";
   const [darkmode, setDarkmode] = useState(savedDarkMode);
+  const { logout } = useAuth();  
 
   // Apply dark mode based on the saved preference
   useEffect(() => {
@@ -163,13 +165,15 @@ const Navbar = (props) => {
                 >
                   Newsletter Settings
                 </a>
-                <a
-                  href=" "
-                  className="mt-3 text-sm font-medium text-red-500 hover:text-red-500 transition duration-150 ease-out hover:ease-in"
-                >
-                  Log Out
-                </a>
+           <a
+            type="button"
+            onClick={logout}
+            className="mt-3 text-sm font-medium text-red-500 hover:text-red-500 transition duration-150 ease-out hover:ease-in cursor-pointer"
+          > 
+           Log Out
+           </a>
               </div>
+            
             </div>
           }
           classNames={"py-2 top-8 -left-[180px] w-max"}
