@@ -100,3 +100,25 @@ input:checked.defaultCheckbox::before {
 html, body, #root {
   margin: 0; padding: 0; height: 100%;
 }
+
+.loader {
+  color: #ffffff;
+  width: 32px; /* Size of the spinner */
+  height: 32px; /* Size of the spinner */
+  border: 4px solid #fff; /* Adjust border thickness */
+  border-top: 4px solid transparent; /* Transparent top to create the spinning effect */
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+/* This ensures the loader is perfectly centered */
+  animation: spin 1s linear infinite; /* Spinning animation */
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}

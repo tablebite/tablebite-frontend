@@ -30,6 +30,10 @@ const Navbar = (props) => {
     }
   }, [darkmode]);
 
+  const email = localStorage.getItem("username"); // assuming email is stored as 'email' in localStorage
+  const username = email ? email.split('@')[0] : 'Guest';
+
+
   // Toggle dark mode and save preference to localStorage
   const toggleDarkMode = () => {
     const newDarkMode = !darkmode;
@@ -134,19 +138,20 @@ const Navbar = (props) => {
         </div>
         {/* Profile & Dropdown */}
         <Dropdown
-          button={
+         button={
             <img
-              className="h-10 w-10 rounded-full"
+              className="h-10 w-10 rounded-full cursor-pointer"
               src={avatar}
               alt="Elon Musk"
             />
           }
+
           children={
             <div className="flex w-56 flex-col justify-start rounded-[20px] bg-white bg-cover bg-no-repeat shadow-xl shadow-shadow-500 dark:!bg-navy-700 dark:text-white dark:shadow-none">
               <div className="p-4">
                 <div className="flex items-center gap-2">
                   <p className="text-sm font-bold text-navy-700 dark:text-white">
-                    👋 Hey, Dhanesh
+                    👋 Hey, {username}
                   </p>{" "}
                 </div>
               </div>
