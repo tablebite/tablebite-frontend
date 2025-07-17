@@ -1,4 +1,3 @@
-// src/Services/catelogAdminApi.js
 import axios from 'axios';
 import { CATELOG_BASEURL } from './baseUrl';  // same base URL, or point to a different ADMIN_BASEURL if you have one
 
@@ -10,12 +9,12 @@ import { CATELOG_BASEURL } from './baseUrl';  // same base URL, or point to a di
  * @param {object} [reqBody]      optional request body
  * @param {object} [reqHeader]    optional headers (defaults to application/json)
  */
-export const catelogAdminAPI = async (httpMethod, url, reqBody, reqHeader) => {
+export const catelogAdminAPI = async (httpMethod, url, reqBody, reqHeader = {}) => {
   const reqConfig = {
     method:  httpMethod,
     url:     `${CATELOG_BASEURL}${url}`,
     data:    reqBody,
-    headers: reqHeader ?? { 'Content-Type': 'application/json' },
+    headers: reqHeader,  // Ensure that headers are correctly passed here
   };
 
   return axios(reqConfig)

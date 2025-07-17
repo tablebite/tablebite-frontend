@@ -4,7 +4,7 @@ import Switch from "components/switch";
 import Dropdown from "components/icons/Dropdown";
 import ImageUploader, { uploadOne } from "./ImageUploader";
 
-import loadingWebm from '../../../../assets/gif/loader-anim.webm'
+import '../../../../index.css'; 
 
 import {
   getAllMenusByRestaurantId,
@@ -103,12 +103,13 @@ export default function ComplexTable() {
       setLoading(true);
       try {
         const [menusRes, catsRes] = await Promise.all([
-          getAllMenusByRestaurantId(restaurantId),
-          getAllCategoriessByRestaurantId(restaurantId),
+          getAllMenusByRestaurantId(),
+          getAllCategoriessByRestaurantId(),
         ]);
         const sorted = [...menusRes.data].sort(
           (a, b) => parseInt(b.id, 10) - parseInt(a.id, 10)
         );
+        console.log(sorted);
         setData(sorted);
         setFilteredData(sorted);
         setCategories(catsRes.data);
@@ -538,16 +539,7 @@ export default function ComplexTable() {
             </thead>
             <tbody>
               {loading ? (
-                  <div className="absolute inset-0 flex items-center justify-center bg-white/50 dark:bg-navy-900/50 z-10">
-                  <video
-                    src={loadingWebm}
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    className="h-[70px] w-[70px] object-contain"
-                  />
-                </div>
+                  <span className="loader"></span>
               ) : rows.length > 0 ? (
                 rows.map((row) => (
                   <tr
